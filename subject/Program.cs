@@ -7,6 +7,7 @@ namespace subject
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello, sailor!");
+            Console.WriteLine("こんにちは!");
         }
     }
 }

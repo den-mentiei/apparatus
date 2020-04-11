@@ -278,10 +278,10 @@ fn main() -> Result<()> {
 		let data = &metadata[offset..offset + size];
 		match name {
 			"#~" => read_logical_tables(data),
-			"#Strings" => read_strings(data),
-			"#US" => read_user_strings(data),
-			"#Blob" => read_blob(data),
-			"#GUID" => read_guid(data),
+			"#Strings" => read_strings(data)?,
+			"#US" => read_user_strings(data)?,
+			"#Blob" => read_blobs(data)?,
+			"#GUID" => read_guids(data),
 			_ => println!("^ unknown table!"),
 		}
 		
@@ -292,23 +292,94 @@ fn main() -> Result<()> {
 }
 
 fn read_logical_tables(data: &[u8]) {
-	dump(data, 24);
+	// dump(data, 24);
 }
 
-fn read_strings(data: &[u8]) {
-	dump(data, 24);
+fn read_strings(data: &[u8]) -> Result<()> {
+	debug_assert!(data.len() >= 1);
+	debug_assert!(data[0] == 0);
+
+	let mut n: usize = 0;
+	for s in data[1..].split(|c| *c == 0) {
+		n += 1;
+
+		// let s = std::str::from_utf8(s)?;
+		// if s.len() > 0 {
+		// 	println!("  `{}`", s);
+		// }
+	}
+	println!("  {} strings.", n);
+
+	Ok(())
 }
 
-fn read_user_strings(data: &[u8]) {
-	dump(data, 24);
+fn read_user_strings(data: &[u8]) -> Result<()> {
+	// Strings in the #US (user string) heap are encoded using 16-bit Unicode
+	// encodings. The count on each string is the number of bytes (not
+	// characters) in the string. Furthermore, there is an additional
+	// terminal byte (so all byte counts are odd, not even). This final byte
+	// holds the value 1 if and only if any UTF16 character within the string
+	// has any bit set in its top byte, or its low byte is any of the
+	// following: 0x01-0x08, 0x0E-0x1F, 0x27, 0x2D, 0x7F.  Otherwise,
+	// it holds 0. The 1 signifies Unicode characters that require handling
+	// beyond that normally provided for 8-bit encoding sets.
+
+	let mut n: usize = 0;
+	let mut i: usize = 0;
+	while i < data.len() - 1 {
+		let (blob, len) = read_blob_len(&data[i..])?;
+		if blob.len() > 0 {
+			let len = blob.len() - 1;
+			let wide: &[u16] = unsafe {
+				std::slice::from_raw_parts(
+					blob.as_ptr() as *const u16,
+					len >> 1)
+			};
+			let s = String::from_utf16(wide)?;
+			println!("  `{}` (fits ascii: {})", s, blob[len] == 0);
+
+			n += 1;
+		}
+		i += len;
+	}
+
+	println!("  {} strings.", n);
+
+	Ok(())
 }
 
-fn read_blob(data: &[u8]) {
-	dump(data, 24);
+fn read_blobs(data: &[u8]) -> Result<()> {
+	// dump(data, data.len() - 1);
+	Ok(())
 }
 
-fn read_guid(data: &[u8]) {
-	dump(data, data.len() - 1);
+// TODO(dmi): @check Add few large strings to subject.
+fn read_blob_len(data: &[u8]) -> Result<(&[u8], usize)> {
+	let b0 = data[0];
+	if b0 & 0b1000_0000 == 0 {
+		let n = (b0 & 0b0111_1111) as usize;
+		return Ok((&data[1..n + 1], n + 1));
+	}
+
+	if b0 & 0b1100_0000 == 0b1000_0000 {
+		let x = data[1] as usize;
+		let n = ((b0 & 0b0011_1111) as usize) << 8 + x;
+		return Ok((&data[1..n + 1], n + 2));
+	}
+
+	if b0 & 0b1110_0000 == 0b1100_0000 {
+		let x = data[1] as usize;
+		let y = data[2] as usize;
+		let z = data[3] as usize;
+		let n = ((b0 & 0b0001_1111) as usize) << 24 + (x << 16) + (y << 8) + z;
+		return Ok((&data[1..n + 1], n + 4));
+	}
+
+	Err("Incorrect blob length.")?
+}
+
+fn read_guids(data: &[u8]) {
+	// dump(data, data.len() - 1);
 }
 
 fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
