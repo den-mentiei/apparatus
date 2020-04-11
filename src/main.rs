@@ -10,11 +10,11 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.dll";
 
-// Dos header magic: MZ little-endian.
+// Dos header magic: MZ (little-endian).
 const DOS_MAGIC: u16 = 0x5a4d;
 const PE_OFFSET: usize = 0x3c;
 
-// PE header magic: PE little-endian.
+// PE header magic: PE (little-endian).
 const PE_MAGIC: u32 = 0x0000_4550;
 const IMAGE_FILE_MACHINE_I386: u16 = 0x14c;
 
@@ -60,6 +60,11 @@ const COMIMAGE_FLAGS_STRONGNAMESIGNED: u32  = 0x00000008;
 const COMIMAGE_FLAGS_NATIVE_ENTRYPOINT: u32 = 0x00000010;
 // Should be zero.
 const COMIMAGE_FLAGS_TRACKDEBUGDATA: u32    = 0x00010000;
+
+// Taken from ECMA 24.2.1
+
+// Magic signature for physical metadata: BSJB (little-endian).
+const METADATA_MAGIC: u32 = 0x424A5342;
 
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
@@ -206,7 +211,42 @@ fn main() -> Result<()> {
 		Err("Assembly has managed native header.")?;
 	}
 	
-	// dump(cli_header, 128);
+	// TODO(dmi): @cleanup This copy-pasta should be factored out.
+	let mut metadata_offset = None;
+	let mut s: usize = 0;
+	for i in 0..n_sections {
+		let section = &section_table[s..];
+		let vsize = section[SECTION_VIRTUAL_SIZE_OFFSET..].read_u32()? as usize;
+		let rva   = section[SECTION_RVA_OFFSET..].read_u32()? as usize;
+		let rsize = section[SECTION_RAW_DATA_SIZE_OFFSET..].read_u32()? as usize;
+		let raw   = section[SECTION_RAW_DATA_PTR_OFFSET..].read_u32()? as usize;
+
+		if metadata_rva >= rva && metadata_rva < rva + vsize {
+			metadata_offset = Some(metadata_rva - rva + raw);
+		}
+
+		s += SECTION_SIZE;
+	}
+
+	let metadata_offset = metadata_offset.ok_or("Failed to find CLI metadata.")?;
+	let metadata = &data[metadata_offset..];
+
+	let len_version = metadata[12..].read_u32()? as usize;
+	if len_version > 255 {
+		Err("Metadata version length is incorrect.")?;
+	}
+	
+	let version = std::str::from_utf8(&metadata[16..(16 + len_version)])?;
+	println!("Version: {}", version);
+
+	let offset = 16 + round_up(len_version, 4);
+
+	let n_streams = metadata[(offset + 2)..].read_u16()? as usize;
+	println!("Metadata streams: {}", n_streams);
+
+	let streams = &metadata[(offset + 4)..];
+	
+	dump(streams, 128);
 
 	Ok(())
 }
@@ -226,6 +266,16 @@ fn dump(data: &[u8], n: usize) {
 	
 	let mut p: usize = 0;
 
+	print!("{:1$} | ", "offset", OFFSET_WIDTH);
+	for i in 0..COLUMNS {
+		print!("{:02x} ", i);
+	}
+	println!("| data");
+	for i in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
+		print!("-");
+	}
+	println!();
+
 	for row in data[..n].chunks(COLUMNS) {
 		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
 		for x in row {
@@ -239,7 +289,7 @@ fn dump(data: &[u8], n: usize) {
 				print!(".");
 			}
 		}
-		println!("");
+		println!();
 
 		p += COLUMNS;
 	}
@@ -250,6 +300,11 @@ fn os_is_64() -> bool { false }
 
 #[cfg(target_pointer_width = "64")]
 fn os_is_64() -> bool { true }
+
+fn round_up(x: usize, n: usize) -> usize {
+	debug_assert!((n & (n - 1)) == 0);
+	(x + (n - 1)) & !(n - 1)
+}
 
 // Buffer
 // ------
