@@ -1,0 +1,13 @@
+* Apparatus
+
+** Things
+
+- [ ] Check subject to be a PE and start parsing it.
+- [ ] Move ~Buf~ to separate module.
+- [ ] ? endianness support for ~Buf~.
+
+** Consider
+
+- Implementing own quote-supporting macro as a custom proc macro.
+  https://github.com/dtolnay/quote
+  https://github.com/dtolnay/paste
