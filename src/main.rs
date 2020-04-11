@@ -8,13 +8,41 @@ use std::path::Path;
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T, E = Error> = std::result::Result<T, E>;
 
-const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.exe";
+const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.dll";
 
-// MZ little-endian.
+// Dos header magic: MZ little-endian.
 const DOS_MAGIC: u16 = 0x5a4d;
 const PE_OFFSET: usize = 0x3c;
-// PE little-endian.
+
+// PE header magic: PE little-endian.
 const PE_MAGIC: u32 = 0x0000_4550;
+const IMAGE_FILE_MACHINE_I386: u16 = 0x14c;
+
+// The following were taken from ECMA 25.2.2.1
+
+// Shall be zero.
+const IMAGE_FILE_RELOCS_STRIPPED: u16  = 0x0001;
+// Shall be one.
+const IMAGE_FILE_EXECUTABLE_IMAGE: u16 = 0x0002;
+// Shall be one if and only if COMIMAGE_FLAGS_32BITREQUIRED is one.
+const IMAGE_FILE_32BIT_MACHINE: u16    = 0x0100;
+// A CIL-only DLL sets flag to one, while a CIL-only .exe has flag set to zero.
+const IMAGE_FILE_DLL: u16              = 0x2000;
+
+// Optional header magic.
+const OPT_MAGIC_PE32: u16 = 0x10b;
+const STANDARD_FIELDS_32_SIZE: usize = 28;
+const WINDOWS_FIELDS_32_SIZE: usize = 68;
+
+const DATA_DIRS_OFFSET: usize = STANDARD_FIELDS_32_SIZE + WINDOWS_FIELDS_32_SIZE;
+const DATA_DIRS_COUNT: usize = 16;
+const DATA_DIR_INDEX_CLI_HEADER: usize = 14;
+
+const SECTION_SIZE: usize = 40;
+const SECTION_VIRTUAL_SIZE_OFFSET: usize  = 8;
+const SECTION_RVA_OFFSET: usize           = 12;
+const SECTION_RAW_DATA_SIZE_OFFSET: usize = 16;
+const SECTION_RAW_DATA_PTR_OFFSET: usize  = 20;
 
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
@@ -38,8 +66,77 @@ fn main() -> Result<()> {
 		Err("PE signature is wrong!")?;
 	}
 
-	dump(pe, 512);
+	let coff = &pe[4..];
+	let machine = coff.read_u16()?;
+
+	if machine != IMAGE_FILE_MACHINE_I386 {
+		Err("Unexpected target machine specified.")?;
+	}
+
+	let n_sections = coff[2..].read_u16()? as usize;
+	println!("Number of sections: {}", n_sections);
+
+	let opt_header_size = coff[16..].read_u16()? as usize;
+	println!("Size of optional header: {:#0x}", opt_header_size);
+
+	let characteristics = coff[18..].read_u16()?;
+
+	if characteristics & IMAGE_FILE_RELOCS_STRIPPED != 0 {
+		Err("Relocations are not stripped.")?;
+	}
+	if characteristics & IMAGE_FILE_EXECUTABLE_IMAGE == 0 {
+		Err("File is not marked as an executable image.")?;
+	}
+	if characteristics & IMAGE_FILE_DLL != 0 {
+		Err("File is not a CIL executable, but a class library.")?;
+	}
+
+	let opt_header = &coff[20..];
+	let magic = opt_header.read_u16()?;
+	if magic != OPT_MAGIC_PE32 {
+		Err("Optional header magic is not PE32.")?;
+	}
+
+	let n_data_dirs = opt_header[92..].read_u32()? as usize;
+	if n_data_dirs != DATA_DIRS_COUNT {
+		Err("Number of data directories is invalid.")?;
+	}
+
+	let cli_header_rva  = opt_header[(DATA_DIRS_OFFSET + DATA_DIR_INDEX_CLI_HEADER * 8)..].read_u32()? as usize;
+	let cli_header_size = opt_header[(DATA_DIRS_OFFSET + DATA_DIR_INDEX_CLI_HEADER * 8 + 4)..].read_u32()? as usize;
+	println!("CLI header RVA: {:#0x}", cli_header_rva);
+	println!("CLI header size: {:#0x}", cli_header_size);
+
+	let section_table = &opt_header[opt_header_size..];
+
+	let mut cli_header_offset = None;
 	
+	let mut s: usize = 0;
+	for i in 0..n_sections {
+		let section = &section_table[s..];
+		let vsize = section[SECTION_VIRTUAL_SIZE_OFFSET..].read_u32()? as usize;
+		let rva   = section[SECTION_RVA_OFFSET..].read_u32()? as usize;
+		let rsize = section[SECTION_RAW_DATA_SIZE_OFFSET..].read_u32()? as usize;
+		let raw   = section[SECTION_RAW_DATA_PTR_OFFSET..].read_u32()? as usize;
+
+		println!("Section #{}:", i);
+		println!("  rva: {:#0x}", rva);
+		println!("  virtual size: {:#0x}", vsize);
+		println!("  raw: {:#0x}", raw);
+		println!("  raw size: {:#0x}", rsize);
+
+		if cli_header_rva >= rva && cli_header_rva < rva + vsize {
+			println!("  * contains CLI header!");
+			cli_header_offset = Some(cli_header_rva - rva + raw);
+		}
+
+		s += SECTION_SIZE;
+	}
+
+	let cli_header_offset = cli_header_offset.ok_or("Failed to find CLI header.")?;
+	let cli_header = &data[cli_header_offset..];
+	dump(cli_header, 128);
+
 	Ok(())
 }
 
@@ -61,7 +158,7 @@ fn dump(data: &[u8], n: usize) {
 	for row in data[..n].chunks(COLUMNS) {
 		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
 		for x in row {
-			print!("{:02X} ", x);
+			print!("{:02x} ", x);
 		}
 		print!("| ");
 		for x in row {
