@@ -3,6 +3,7 @@
 ** Things
 
 - [ ] Check subject to be a PE and start parsing it.
+- [ ] Add safe reads.
 - [ ] Move ~Buf~ to separate module.
 - [ ] ? endianness support for ~Buf~.
 

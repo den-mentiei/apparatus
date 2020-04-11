@@ -10,7 +10,11 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 
 const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.exe";
 
+// MZ little-endian.
 const DOS_MAGIC: u16 = 0x5a4d;
+const PE_OFFSET: usize = 0x3c;
+// PE little-endian.
+const PE_MAGIC: u32 = 0x0000_4550;
 
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
@@ -18,13 +22,23 @@ fn main() -> Result<()> {
 	println!("The current directory is `{}`.", path.display());
 	println!("Subject: `{}`.", SUBJECT);
 
-	let data = read_whole_file(Path::new(SUBJECT))?;
+	let data = &*read_whole_file(Path::new(SUBJECT))?;
 	println!("Subject size: {} bytes.", data.len());
 
 	let magic = data.read_u16()?;
 	if magic != DOS_MAGIC {
 		Err("Signature is wrong!")?;
 	}
+
+	let pe_offset = data[PE_OFFSET..].read_u32()? as usize;
+	
+	let pe = &data[pe_offset..];
+	let magic = pe.read_u32()?;
+	if magic != PE_MAGIC {
+		Err("PE signature is wrong!")?;
+	}
+
+	dump(pe, 512);
 	
 	Ok(())
 }
@@ -36,8 +50,35 @@ fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
 	Ok(buf.into_boxed_slice())
 }
 
-// Reading
-// -------
+fn dump(data: &[u8], n: usize) {
+	assert!(n < data.len());
+
+	const COLUMNS: usize = 16;
+	const OFFSET_WIDTH: usize = std::mem::size_of::<usize>() << 1;
+	
+	let mut p: usize = 0;
+
+	for row in data[..n].chunks(COLUMNS) {
+		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
+		for x in row {
+			print!("{:02X} ", x);
+		}
+		print!("| ");
+		for x in row {
+			if x.is_ascii_alphanumeric() || x.is_ascii_punctuation() || x.is_ascii_graphic() {
+				print!("{}", *x as char);
+			} else {
+				print!(".");
+			}
+		}
+		println!("");
+
+		p += COLUMNS;
+	}
+}
+
+// Buffer
+// ------
 
 #[derive(Debug)]
 enum BufError {
