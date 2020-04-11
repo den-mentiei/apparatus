@@ -44,6 +44,23 @@ const SECTION_RVA_OFFSET: usize           = 12;
 const SECTION_RAW_DATA_SIZE_OFFSET: usize = 16;
 const SECTION_RAW_DATA_PTR_OFFSET: usize  = 20;
 
+// Taken from ECMA 25.3.3.1
+
+// Shall be one.
+const COMIMAGE_FLAGS_ILONLY: u32            = 0x00000001;
+// Set if image can only be loaded into a 32-bit process,
+// for instance if there are 32-bit vtable fixups, or casts
+// from native integers into int32. CLI implementation that
+// have 64-bit native integers shall refuce loading binaries
+// with this flag set.
+const COMIMAGE_FLAGS_32BITREQUIRED: u32     = 0x00000002;
+// Image has a strong name signature.
+const COMIMAGE_FLAGS_STRONGNAMESIGNED: u32  = 0x00000008;
+// Shall be zero.
+const COMIMAGE_FLAGS_NATIVE_ENTRYPOINT: u32 = 0x00000010;
+// Should be zero.
+const COMIMAGE_FLAGS_TRACKDEBUGDATA: u32    = 0x00010000;
+
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
 	let path = std::env::current_dir()?;
@@ -135,7 +152,61 @@ fn main() -> Result<()> {
 
 	let cli_header_offset = cli_header_offset.ok_or("Failed to find CLI header.")?;
 	let cli_header = &data[cli_header_offset..];
-	dump(cli_header, 128);
+
+	let size = cli_header.read_u32()? as usize;
+	if cli_header_size != size {
+		Err("CLI header specifies wrong size.")?;
+	}
+
+	// Offsets are defined in ECMA 25.3.3.
+	let rt_major = cli_header[4..].read_u16()?;
+	let rt_minor = cli_header[6..].read_u16()?;
+	println!("CLI runtime: {}.{}", rt_major, rt_minor);
+
+	let metadata_rva  = cli_header[8..].read_u32()? as usize;
+	let metadata_size = cli_header[12..].read_u32()? as usize;
+	println!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
+
+	let flags = cli_header[16..].read_u32()?;
+	if flags & COMIMAGE_FLAGS_ILONLY == 0 {
+		Err("Assembly contains not only IL.")?;
+	}
+	if (flags & COMIMAGE_FLAGS_32BITREQUIRED != 0) && os_is_64() {
+		Err("Assembly can be loaded only in 32-bit process.")?;
+	}
+	if flags & COMIMAGE_FLAGS_STRONGNAMESIGNED != 0 {
+		println!("Assembly has a strong name signature.");
+	}
+	if flags & COMIMAGE_FLAGS_NATIVE_ENTRYPOINT != 0 {
+		Err("Assembly has native entry-point.")?;
+	}
+	if flags & COMIMAGE_FLAGS_TRACKDEBUGDATA != 0 {
+		Err("Assembly requires debug data tracking.")?;
+	}
+
+	let ep_token = cli_header[20..].read_u32()?;
+
+	let cm_table = cli_header[40..].read_u64()?;
+	if cm_table != 0 {
+		Err("Assembly has code manager table.")?;
+	}
+
+	let vtable_fixups = cli_header[48..].read_u64()?;
+	if vtable_fixups != 0 {
+		Err("Assembly has VTable fixups.")?;
+	}
+
+	let eat_jumps = cli_header[56..].read_u64()?;
+	if eat_jumps != 0 {
+		Err("Assembly has export address table jumps.")?;
+	}
+	
+	let managed_native_header = cli_header[64..].read_u64()?;
+	if managed_native_header != 0 {
+		Err("Assembly has managed native header.")?;
+	}
+	
+	// dump(cli_header, 128);
 
 	Ok(())
 }
@@ -173,6 +244,12 @@ fn dump(data: &[u8], n: usize) {
 		p += COLUMNS;
 	}
 }
+
+#[cfg(target_pointer_width = "32")]
+fn os_is_64() -> bool { false }
+
+#[cfg(target_pointer_width = "64")]
+fn os_is_64() -> bool { true }
 
 // Buffer
 // ------
