@@ -66,6 +66,8 @@ const COMIMAGE_FLAGS_TRACKDEBUGDATA: u32    = 0x00010000;
 // Magic signature for physical metadata: BSJB (little-endian).
 const METADATA_MAGIC: u32 = 0x424A5342;
 
+const METADATA_STREAM_NAME_MAX_LEN: usize = 32;
+
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
 	let path = std::env::current_dir()?;
@@ -141,14 +143,14 @@ fn main() -> Result<()> {
 		let rsize = section[SECTION_RAW_DATA_SIZE_OFFSET..].read_u32()? as usize;
 		let raw   = section[SECTION_RAW_DATA_PTR_OFFSET..].read_u32()? as usize;
 
-		println!("Section #{}:", i);
-		println!("  rva: {:#0x}", rva);
-		println!("  virtual size: {:#0x}", vsize);
-		println!("  raw: {:#0x}", raw);
-		println!("  raw size: {:#0x}", rsize);
+		// println!("Section #{}:", i);
+		// println!("  rva: {:#0x}", rva);
+		// println!("  virtual size: {:#0x}", vsize);
+		// println!("  raw: {:#0x}", raw);
+		// println!("  raw size: {:#0x}", rsize);
 
 		if cli_header_rva >= rva && cli_header_rva < rva + vsize {
-			println!("  * contains CLI header!");
+			// println!("  * contains CLI header!");
 			cli_header_offset = Some(cli_header_rva - rva + raw);
 		}
 
@@ -231,6 +233,11 @@ fn main() -> Result<()> {
 	let metadata_offset = metadata_offset.ok_or("Failed to find CLI metadata.")?;
 	let metadata = &data[metadata_offset..];
 
+	let magic = metadata.read_u32()?;
+	if magic != METADATA_MAGIC {
+		Err("Metadata signature is wrong.")?;
+	}
+
 	let len_version = metadata[12..].read_u32()? as usize;
 	if len_version > 255 {
 		Err("Metadata version length is incorrect.")?;
@@ -245,10 +252,63 @@ fn main() -> Result<()> {
 	println!("Metadata streams: {}", n_streams);
 
 	let streams = &metadata[(offset + 4)..];
-	
-	dump(streams, 128);
 
+	let mut s: usize = 0;
+	for i in 0..n_streams {
+		let header = &streams[s..];
+		
+		let offset = header[0..].read_u32()? as usize;
+		let size   = header[4..].read_u32()? as usize;
+
+		let name = &header[8..];
+		let mut len: usize = 0;
+		for j in 0..METADATA_STREAM_NAME_MAX_LEN {
+			len += 1;
+			if name[j] == 0 {
+				break;
+			}
+		}
+		if len > METADATA_STREAM_NAME_MAX_LEN {
+			Err("Metadata stream name lenght is invalid.")?;
+		}
+
+		let name = std::str::from_utf8(&name[..len - 1])?;
+		println!("Stream #{}: `{}`, at {:#0x}, {:#0x} bytes.", i, name, offset, size);
+
+		let data = &metadata[offset..offset + size];
+		match name {
+			"#~" => read_logical_tables(data),
+			"#Strings" => read_strings(data),
+			"#US" => read_user_strings(data),
+			"#Blob" => read_blob(data),
+			"#GUID" => read_guid(data),
+			_ => println!("^ unknown table!"),
+		}
+		
+		s += 8 + round_up(len, 4);
+	}
+	
 	Ok(())
+}
+
+fn read_logical_tables(data: &[u8]) {
+	dump(data, 24);
+}
+
+fn read_strings(data: &[u8]) {
+	dump(data, 24);
+}
+
+fn read_user_strings(data: &[u8]) {
+	dump(data, 24);
+}
+
+fn read_blob(data: &[u8]) {
+	dump(data, 24);
+}
+
+fn read_guid(data: &[u8]) {
+	dump(data, data.len() - 1);
 }
 
 fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
@@ -280,6 +340,9 @@ fn dump(data: &[u8], n: usize) {
 		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
 		for x in row {
 			print!("{:02x} ", x);
+		}
+		for i in row.len()..COLUMNS {
+			print!("__ ");
 		}
 		print!("| ");
 		for x in row {

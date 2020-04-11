@@ -8,6 +8,7 @@
 - [ ] Add an ability to read and increment offset.
 - [ ] ? Rewrite read to be gerenic over type.
 - [ ] Add RVA->Offset utility.
+- [ ] Parse ~#~~ logical tables.
 - [ ] Add safe reads.
 - [ ] Move ~Buf~ to separate module.
 - [ ] ? endianness support for ~Buf~.
