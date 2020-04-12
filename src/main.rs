@@ -556,10 +556,10 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 			
 			let name_si = read_idx(data, offset, si_size)?;
 			offset += si_size;
+			println!("  name index: {:#0x}", name_si);
+
 			let signature_bi = read_idx(data, offset, bi_size)?;
 			offset += bi_size;
-
-			println!("  name index: {:#0x}", name_si);
 			println!("  signature index: {:#0x}", signature_bi);
 		}
 
@@ -567,6 +567,45 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	}
 	
 	// METADATA_METHODDEF
+	// II.22.26
+	if (valid_mask >> METADATA_METHODDEF) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("MethodDef table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("MethodDef #{}", i);
+
+			// TODO(dmi): @next Finally! Can find entry point method now
+			// and rush to get its IL-code.
+			let rva = data[offset..].read_u32()?;
+			offset += 4;
+			println!("  rva: {:#0x}", rva);
+			
+			let impl_flags = data[offset..].read_u16()?;
+			offset += 2;
+			println!("  impl flags: {:#0x}", impl_flags);
+
+			let flags = data[offset..].read_u16()?;
+			offset += 2;
+			println!("  flags: {:#0x}", flags);
+
+			let name_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			println!("  name index: {:#0x}", name_si);
+
+			let signature_bi = read_idx(data, offset, bi_size)?;
+			offset += bi_size;
+			println!("  signature index: {:#0x}", signature_bi);
+
+			let pi_size = if table_lens[METADATA_PARAM] <= 0xFFFF { 2 } else { 4 };
+			let first_param_idx = read_idx(data, offset, pi_size)?;
+			offset += pi_size;
+			println!("  first param index: {:#0x}", first_param_idx);
+		}
+
+		t += 1;
+	}
+	
 	// METADATA_PARAM
 	// METADATA_INTERFACEIMPL
 	// METADATA_MEMBERREF
