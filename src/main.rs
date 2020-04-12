@@ -1,9 +1,13 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+mod utils;
+
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+
+use utils::{align_up, dump};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -246,7 +250,7 @@ fn main() -> Result<()> {
 	let version = std::str::from_utf8(&metadata[16..(16 + len_version)])?;
 	println!("Version: {}", version);
 
-	let offset = 16 + round_up(len_version, 4);
+	let offset = 16 + align_up(len_version, 4);
 
 	let n_streams = metadata[(offset + 2)..].read_u16()? as usize;
 	println!("Metadata streams: {}", n_streams);
@@ -285,7 +289,7 @@ fn main() -> Result<()> {
 			_ => println!("^ unknown table!"),
 		}
 		
-		s += 8 + round_up(len, 4);
+		s += 8 + align_up(len, 4);
 	}
 	
 	Ok(())
@@ -303,10 +307,10 @@ fn read_strings(data: &[u8]) -> Result<()> {
 	for s in data[1..].split(|c| *c == 0) {
 		n += 1;
 
-		// let s = std::str::from_utf8(s)?;
-		// if s.len() > 0 {
-		// 	println!("  `{}`", s);
-		// }
+		let s = std::str::from_utf8(s)?;
+		if s.len() > 0 {
+			println!("  `{}`", s);
+		}
 	}
 	println!("  {} strings.", n);
 
@@ -349,7 +353,7 @@ fn read_user_strings(data: &[u8]) -> Result<()> {
 }
 
 fn read_blobs(data: &[u8]) -> Result<()> {
-	// dump(data, data.len() - 1);
+	dump(data, data.len() - 1);
 	Ok(())
 }
 
@@ -389,56 +393,11 @@ fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
 	Ok(buf.into_boxed_slice())
 }
 
-fn dump(data: &[u8], n: usize) {
-	assert!(n < data.len());
-
-	const COLUMNS: usize = 16;
-	const OFFSET_WIDTH: usize = std::mem::size_of::<usize>() << 1;
-	
-	let mut p: usize = 0;
-
-	print!("{:1$} | ", "offset", OFFSET_WIDTH);
-	for i in 0..COLUMNS {
-		print!("{:02x} ", i);
-	}
-	println!("| data");
-	for i in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
-		print!("-");
-	}
-	println!();
-
-	for row in data[..n].chunks(COLUMNS) {
-		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
-		for x in row {
-			print!("{:02x} ", x);
-		}
-		for i in row.len()..COLUMNS {
-			print!("__ ");
-		}
-		print!("| ");
-		for x in row {
-			if x.is_ascii_alphanumeric() || x.is_ascii_punctuation() || x.is_ascii_graphic() {
-				print!("{}", *x as char);
-			} else {
-				print!(".");
-			}
-		}
-		println!();
-
-		p += COLUMNS;
-	}
-}
-
 #[cfg(target_pointer_width = "32")]
 fn os_is_64() -> bool { false }
 
 #[cfg(target_pointer_width = "64")]
 fn os_is_64() -> bool { true }
-
-fn round_up(x: usize, n: usize) -> usize {
-	debug_assert!((n & (n - 1)) == 0);
-	(x + (n - 1)) & !(n - 1)
-}
 
 // Buffer
 // ------
