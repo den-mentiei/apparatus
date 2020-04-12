@@ -20,7 +20,7 @@ const PE_OFFSET: usize = 0x3c;
 const PE_MAGIC: u32 = 0x0000_4550;
 const IMAGE_FILE_MACHINE_I386: u16 = 0x14c;
 
-// The following were taken from ECMA 25.2.2.1
+// The following were taken from ECMA II.25.2.2.1
 
 // Shall be zero.
 const IMAGE_FILE_RELOCS_STRIPPED: u16  = 0x0001;
@@ -46,7 +46,7 @@ const SECTION_RVA_OFFSET: usize           = 12;
 const SECTION_RAW_DATA_SIZE_OFFSET: usize = 16;
 const SECTION_RAW_DATA_PTR_OFFSET: usize  = 20;
 
-// Taken from ECMA 25.3.3.1
+// Taken from ECMA II.25.3.3.1
 
 // Shall be one.
 const COMIMAGE_FLAGS_ILONLY: u32            = 0x00000001;
@@ -63,12 +63,53 @@ const COMIMAGE_FLAGS_NATIVE_ENTRYPOINT: u32 = 0x00000010;
 // Should be zero.
 const COMIMAGE_FLAGS_TRACKDEBUGDATA: u32    = 0x00010000;
 
-// Taken from ECMA 24.2.1
+// Taken from ECMA II.24.2.1
 
 // Magic signature for physical metadata: BSJB (little-endian).
 const METADATA_MAGIC: u32 = 0x424A5342;
 
 const METADATA_STREAM_NAME_MAX_LEN: usize = 32;
+
+// Taken from ECMA II.22
+
+const METADATA_MODULE:                 u8 = 0x00;
+const METADATA_TYPEREF:                u8 = 0x01;
+const METADATA_TYPEDEF:                u8 = 0x02;
+const METADATA_FIELD:                  u8 = 0x04;
+const METADATA_METHODDEF:              u8 = 0x06;
+const METADATA_PARAM:                  u8 = 0x08;
+const METADATA_INTERFACEIMPL:          u8 = 0x09;
+const METADATA_MEMBERREF:              u8 = 0x0A;
+const METADATA_CONSTANT:               u8 = 0x0B;
+const METADATA_CUSTOMATTRIBUTE:        u8 = 0x0C;
+const METADATA_FIELDMARSHAL:           u8 = 0x0D;
+const METADATA_DECLSECURITY:           u8 = 0x0E;
+const METADATA_CLASSLAYOUT:            u8 = 0x0F;
+const METADATA_FIELDLAYOUT:            u8 = 0x10;
+const METADATA_STANDALONESIG:          u8 = 0x11;
+const METADATA_EVENTMAP:               u8 = 0x12;
+const METADATA_EVENT:                  u8 = 0x14;
+const METADATA_PROPERTYMAP:            u8 = 0x15;
+const METADATA_PROPERTY:               u8 = 0x17;
+const METADATA_METHODSEMANTICS:        u8 = 0x18;
+const METADATA_METHODIMPL:             u8 = 0x19;
+const METADATA_MODULEREF:              u8 = 0x1A;
+const METADATA_TYPESPEC:               u8 = 0x1B;
+const METADATA_IMPLMAP:                u8 = 0x1C;
+const METADATA_FIELDRVA:               u8 = 0x1D;
+const METADATA_ASSEMBLY:               u8 = 0x20;
+const METADATA_ASSEMBLYPROCESSOR:      u8 = 0x21;
+const METADATA_ASSEMBLYOS:             u8 = 0x22;
+const METADATA_ASSEMBLYREF:            u8 = 0x23;
+const METADATA_ASSEMBLYREFPROCESSOR:   u8 = 0x24;
+const METADATA_ASSEMBLYREFOS:          u8 = 0x25;
+const METADATA_FILE:                   u8 = 0x26;
+const METADATA_EXPORTEDTYPE:           u8 = 0x27;
+const METADATA_MANIFESTRESOURCE:       u8 = 0x28;
+const METADATA_NESTEDCLASS:            u8 = 0x29;
+const METADATA_GENERICPARAM:           u8 = 0x2A;
+const METADATA_METHODSPEC:             u8 = 0x2B;
+const METADATA_GENERICPARAMCONSTRAINT: u8 = 0x2C;
 
 fn main() -> Result<()> {	
 	println!("Hello, sailor!");
@@ -160,7 +201,7 @@ fn main() -> Result<()> {
 		Err("CLI header specifies wrong size.")?;
 	}
 
-	// Offsets are defined in ECMA 25.3.3.
+	// Offsets are defined in ECMA II.25.3.3.
 	let rt_major = cli_header[4..].read_u16()?;
 	let rt_minor = cli_header[6..].read_u16()?;
 	println!("CLI runtime: {}.{}", rt_major, rt_minor);
