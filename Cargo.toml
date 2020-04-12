@@ -10,3 +10,6 @@ readme = "README.md"
 license-file = "LICENSE"
 
 [dependencies]
+
+[profile.release]
+lto = true
