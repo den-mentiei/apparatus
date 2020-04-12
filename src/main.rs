@@ -272,11 +272,11 @@ fn main() -> Result<()> {
 
 		let data = &metadata[offset..offset + size];
 		match name {
-			"#~" => read_logical_tables(data),
+			"#~" => read_logical_tables(data)?,
 			"#Strings" => read_strings(data)?,
 			"#US" => read_user_strings(data)?,
 			"#Blob" => read_blobs(data)?,
-			"#GUID" => read_guids(data),
+			"#GUID" => read_guids(data)?,
 			_ => println!("^ unknown table!"),
 		}
 		
@@ -286,8 +286,9 @@ fn main() -> Result<()> {
 	Ok(())
 }
 
-fn read_logical_tables(data: &[u8]) {
+fn read_logical_tables(data: &[u8]) -> Result<()> {
 	// dump(data, 24);
+	Ok(())
 }
 
 fn read_strings(data: &[u8]) -> Result<()> {
@@ -303,7 +304,7 @@ fn read_strings(data: &[u8]) -> Result<()> {
 			println!("  `{}`", s);
 		}
 	}
-	println!("  {} strings.", n);
+	println!("  {} string(s).", n);
 
 	Ok(())
 }
@@ -338,13 +339,13 @@ fn read_user_strings(data: &[u8]) -> Result<()> {
 		i += len;
 	}
 
-	println!("  {} strings.", n);
+	println!("  {} string(s).", n);
 
 	Ok(())
 }
 
 fn read_blobs(data: &[u8]) -> Result<()> {
-	dump(data, data.len() - 1);
+	dump(data, data.len());
 	Ok(())
 }
 
@@ -373,6 +374,24 @@ fn read_blob_len(data: &[u8]) -> Result<(&[u8], usize)> {
 	Err("Incorrect blob length.")?
 }
 
-fn read_guids(data: &[u8]) {
-	dump(data, data.len() - 1);
+fn read_guids(data: &[u8]) -> Result<()> {
+	if data.len() & 15 !=0 {
+		Err("Invalid #GUID heap size.")?;
+	}
+
+	for g in data.chunks(16) {
+		let data1 = g[0..].read_u32()?;
+		let data2 = g[4..].read_u16()?;
+		let data3 = g[6..].read_u16()?;
+
+		print!("  {:08X}-{:04X}-{:04X}-", data1, data2, data3);
+		for x in &g[8..] {
+			print!("{:02X}", x)
+		}
+		println!();
+	}
+	
+	println!("  {} guid(s).", data.len() >> 4);
+
+	Ok(())
 }

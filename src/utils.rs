@@ -17,7 +17,7 @@ pub fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
 }
 
 pub fn dump(data: &[u8], n: usize) {
-	assert!(n < data.len());
+	assert!(n <= data.len());
 
 	const COLUMNS: usize = 16;
 	const OFFSET_WIDTH: usize = std::mem::size_of::<usize>() << 1;
