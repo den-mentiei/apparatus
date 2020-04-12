@@ -542,6 +542,30 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	}
 
 	// METADATA_FIELD
+	// II.22.15
+	if (valid_mask >> METADATA_FIELD) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Field table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("Field #{}", i);
+
+			let flags = data[offset..].read_u16()?;
+			println!("  flags: {:#0x}", flags);
+			offset += 2;
+			
+			let name_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			let signature_bi = read_idx(data, offset, bi_size)?;
+			offset += bi_size;
+
+			println!("  name index: {:#0x}", name_si);
+			println!("  signature index: {:#0x}", signature_bi);
+		}
+
+		t += 1;
+	}
+	
 	// METADATA_METHODDEF
 	// METADATA_PARAM
 	// METADATA_INTERFACEIMPL
