@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use utils::{align_up, dump};
+use utils::{align_up, dump, os_is_64};
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -383,7 +383,7 @@ fn read_blob_len(data: &[u8]) -> Result<(&[u8], usize)> {
 }
 
 fn read_guids(data: &[u8]) {
-	// dump(data, data.len() - 1);
+	dump(data, data.len() - 1);
 }
 
 fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
@@ -392,12 +392,6 @@ fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
 	f.read_to_end(&mut buf)?;
 	Ok(buf.into_boxed_slice())
 }
-
-#[cfg(target_pointer_width = "32")]
-fn os_is_64() -> bool { false }
-
-#[cfg(target_pointer_width = "64")]
-fn os_is_64() -> bool { true }
 
 // Buffer
 // ------

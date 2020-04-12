@@ -11,15 +11,8 @@ pub fn dump(data: &[u8], n: usize) {
 	
 	let mut p: usize = 0;
 
-	print!("{:1$} | ", "offset", OFFSET_WIDTH);
-	for i in 0..COLUMNS {
-		print!("{:02x} ", i);
-	}
-	println!("| data");
-	for i in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
-		print!("-");
-	}
-	println!();
+	header();
+	dash();
 
 	for row in data[..n].chunks(COLUMNS) {
 		print!("{1:#00$x} | ", OFFSET_WIDTH, p);
@@ -41,4 +34,27 @@ pub fn dump(data: &[u8], n: usize) {
 
 		p += COLUMNS;
 	}
+
+	dash();
+
+	fn header() {
+		print!("{:1$} | ", "offset", OFFSET_WIDTH);
+		for i in 0..COLUMNS {
+			print!("{:02x} ", i);
+		}
+		println!("| data");
+	}
+	
+	fn dash() {
+		for i in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
+			print!("-");
+		}
+		println!();
+	}
 }
+
+#[cfg(target_pointer_width = "32")]
+pub fn os_is_64() -> bool { false }
+
+#[cfg(target_pointer_width = "64")]
+pub fn os_is_64() -> bool { true }
