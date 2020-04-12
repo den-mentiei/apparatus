@@ -287,7 +287,29 @@ fn main() -> Result<()> {
 }
 
 fn read_logical_tables(data: &[u8]) -> Result<()> {
-	// dump(data, 24);
+	// TODO(dmi): @incomplete Handle this?
+	// The HeapSizes field is a bitvector that encodes the width of
+	// indexes into the various heaps. If bit 0 is set, indexes into
+	// the #String heap are 4 bytes wide; if bit 1 is set, indexes
+	// into the #GUID heap are 4 bytes wide; if bit 2 is set, indexes
+	// into the #Blob heap are 4 bytes wide. Conversely, if the
+	// HeapSize bit for a particular heap is not set, indexes into
+	// that heap are 2 bytes wide.
+	let heap_sizes = data[6..].read_u8()?;
+	println!("Heap sizes: {:#010b}", heap_sizes);
+
+	// The Valid field is a 64-bit bitvector that has a specific bit
+	// set for each table that is stored in the stream; the mapping of
+	// tables to indexes is given at the start of II.22.
+	let valid_mask = data[8..].read_u64()? as usize;
+	let n = valid_mask.count_ones() as usize;
+	println!("Valid mask: {:#066b} -> {} table(s).", valid_mask, n);
+
+	let rows = &data[24..24 + n * 4];
+	let tables = &data[24 + n * 4..];
+	
+	dump(tables, 64);
+
 	Ok(())
 }
 
@@ -299,10 +321,10 @@ fn read_strings(data: &[u8]) -> Result<()> {
 	for s in data[1..].split(|c| *c == 0) {
 		n += 1;
 
-		let s = std::str::from_utf8(s)?;
-		if s.len() > 0 {
-			println!("  `{}`", s);
-		}
+		// let s = std::str::from_utf8(s)?;
+		// if s.len() > 0 {
+		// 	println!("  `{}`", s);
+		// }
 	}
 	println!("  {} string(s).", n);
 
@@ -345,7 +367,7 @@ fn read_user_strings(data: &[u8]) -> Result<()> {
 }
 
 fn read_blobs(data: &[u8]) -> Result<()> {
-	dump(data, data.len());
+	// dump(data, data.len());
 	Ok(())
 }
 
@@ -384,11 +406,11 @@ fn read_guids(data: &[u8]) -> Result<()> {
 		let data2 = g[4..].read_u16()?;
 		let data3 = g[6..].read_u16()?;
 
-		print!("  {:08X}-{:04X}-{:04X}-", data1, data2, data3);
+		print!("  {{{:08X}-{:04X}-{:04X}-", data1, data2, data3);
 		for x in &g[8..] {
 			print!("{:02X}", x)
 		}
-		println!();
+		println!("}}");
 	}
 	
 	println!("  {} guid(s).", data.len() >> 4);
