@@ -1,6 +1,19 @@
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+
+use aps::Result;
+
 pub fn align_up(x: usize, n: usize) -> usize {
 	debug_assert!((n & (n - 1)) == 0);
 	(x + (n - 1)) & !(n - 1)
+}
+
+pub fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
+	let mut f   = File::open(path)?;
+	let mut buf = Vec::new();
+	f.read_to_end(&mut buf)?;
+	Ok(buf.into_boxed_slice())
 }
 
 pub fn dump(data: &[u8], n: usize) {

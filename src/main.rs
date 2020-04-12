@@ -4,15 +4,11 @@
 mod utils;
 mod buf;
 
-use std::fs::File;
-use std::io::Read;
 use std::path::Path;
 
-use utils::{align_up, dump, os_is_64};
+use aps::Result;
+use utils::{read_whole_file, dump, align_up, os_is_64};
 use buf::Buf;
-
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Result<T, E = Error> = std::result::Result<T, E>;
 
 const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.dll";
 
@@ -379,11 +375,4 @@ fn read_blob_len(data: &[u8]) -> Result<(&[u8], usize)> {
 
 fn read_guids(data: &[u8]) {
 	dump(data, data.len() - 1);
-}
-
-fn read_whole_file(path: &Path) -> Result<Box<[u8]>> {
-	let mut f   = File::open(path)?;
-	let mut buf = Vec::new();
-	f.read_to_end(&mut buf)?;
-	Ok(buf.into_boxed_slice())
 }
