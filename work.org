@@ -2,16 +2,14 @@
 
 ** Things
 
-- [X] Check subject to be a PE and start parsing it.
-- [X] Basic header checks for executable to conform ECMA.
 - [ ] Add ability to read from specified offset.
 - [ ] Add an ability to read and increment offset.
 - [ ] ? Rewrite read to be gerenic over type.
 - [ ] Add RVA->Offset utility.
 - [ ] Parse ~#~~ logical tables.
 - [ ] Add safe reads.
-- [ ] Move ~Buf~ to separate module.
 - [ ] ? endianness support for ~Buf~.
+- [ ] Get rid of dynamic errors (allocations and code bloat).
 
 ** Consider
 
