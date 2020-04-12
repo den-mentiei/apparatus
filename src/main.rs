@@ -481,6 +481,66 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	}
 
 	// METADATA_TYPEDEF
+	// II.22.37
+	if (valid_mask >> METADATA_TYPEDEF) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("TypeDef table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("TypeDef #{}", i);
+
+			// TODO(dmi): @incomplete Parse flags.
+			let flags = data[offset..].read_u32()?;
+			offset += 4;
+			println!("  flags: {:#0x}", flags);
+
+			let type_name_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			let type_namespace_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+
+			println!("  type name index: {:#0x}", type_name_si);
+			println!("  type namespace index: {:#0x}", type_namespace_si);
+
+			// II.24.2.6:
+			const TAG_MASK: usize = 0b11;
+			const TYPEDEF:  usize = 0;
+			const TYPEREF:  usize = 1;
+			const TYPESPEC: usize = 2;
+
+			let max_len = max!(
+				table_lens[METADATA_TYPEDEF],
+				table_lens[METADATA_TYPEREF],
+				table_lens[METADATA_TYPESPEC]) as usize;
+			let size  = if max_len < size_for_big_index(3) { 2 } else { 4 };
+			let shift = log2(TAG_MASK);
+
+			let extends = read_idx(data, offset, size)?;
+			offset += size;
+
+			print!("  extends ");
+			match extends & TAG_MASK {
+				TYPEDEF => print!("TypeDef"),
+				TYPEREF => print!("TypeRef"),
+				TYPESPEC => print!("TypeSpec"),
+				_ => Err("Invalid TypeDefOrRef tag.")?,
+			};
+			println!(" {:#0x}", extends >> shift);
+
+			let fi_size = if table_lens[METADATA_FIELD] <= 0xFFFF { 2 } else { 4 };
+			let first_field_idx = read_idx(data, offset, fi_size)?;
+			offset += fi_size;
+			println!("  first field index: {:#0x}", first_field_idx);
+
+			let mi_size = if table_lens[METADATA_METHODDEF] <= 0xFFFF { 2 } else { 4 };
+			let first_method_idx = read_idx(data, offset, mi_size)?;
+			offset += mi_size;
+			println!("  first method index: {:#0x}", first_method_idx);
+		}
+
+		t += 1;
+	}
+
 	// METADATA_FIELD
 	// METADATA_METHODDEF
 	// METADATA_PARAM

@@ -2,9 +2,10 @@
 
 ** Things
 
-- [ ] Add ability to read from specified offset.
-- [ ] Add an ability to read and increment offset.
 - [ ] ? Rewrite read to be gerenic over type.
+- [ ] Add an ability to read from specified offset.
+- [ ] Add an ability to read and increment offset.
+- [ ] Macros to simplify logical tables parsing.
 - [ ] Add RVA->Offset utility.
 - [ ] Parse ~#~~ logical tables.
 - [ ] Add safe reads.
