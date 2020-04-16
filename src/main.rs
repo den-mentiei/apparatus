@@ -409,7 +409,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	// example, a value of 0x321, indexes row number 0xC8 in the Param
 	// table.]
 	
-	// II.22.30
+	// METADATA_MODULE II.22.30
 	if (valid_mask >> METADATA_MODULE) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("Module table with {} item(s).", len);
@@ -436,8 +436,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 
-	// METADATA_TYPEREF
-	// II.22.30
+	// METADATA_TYPEREF II.22.30
 	if (valid_mask >> METADATA_TYPEREF) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("TypeRef table with {} item(s).", len);
@@ -480,8 +479,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 
-	// METADATA_TYPEDEF
-	// II.22.37
+	// METADATA_TYPEDEF II.22.37
 	if (valid_mask >> METADATA_TYPEDEF) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("TypeDef table with {} item(s).", len);
@@ -541,8 +539,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 
-	// METADATA_FIELD
-	// II.22.15
+	// METADATA_FIELD II.22.15
 	if (valid_mask >> METADATA_FIELD) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("Field table with {} item(s).", len);
@@ -566,8 +563,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 	
-	// METADATA_METHODDEF
-	// II.22.26
+	// METADATA_METHODDEF II.22.26
 	if (valid_mask >> METADATA_METHODDEF) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("MethodDef table with {} item(s).", len);
@@ -606,8 +602,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 	
-	// METADATA_PARAM
-	// II.22.33
+	// METADATA_PARAM II.22.33
 	if (valid_mask >> METADATA_PARAM) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("Param table with {} item(s).", len);
@@ -646,7 +641,52 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 
-	// METADATA_INTERFACEIMPL
+	// METADATA_INTERFACEIMPL II.22.23
+	// The InterfaceImpl table records the interfaces a type
+	// implements explicitly.  Conceptually, each row in the
+	// InterfaceImpl table indicates that Class implements Interface.
+	if (valid_mask >> METADATA_INTERFACEIMPL) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("InterfaceImpl table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("InterfaceImpl #{}", i);
+
+			let ti_size   = if table_lens[METADATA_TYPEDEF] <= 0xFFFF { 2 } else { 4 };
+			let class_idx = read_idx(data, offset, ti_size)?;
+			offset += ti_size;
+			println!("  class: {:#0x}", class_idx);
+
+			// II.24.2.6:
+			const TAG_MASK: usize = 0b11;
+			const TYPEDEF:  usize = 0;
+			const TYPEREF:  usize = 1;
+			const TYPESPEC: usize = 2;
+
+			let max_len = max!(
+				table_lens[METADATA_TYPEDEF],
+				table_lens[METADATA_TYPEREF],
+				table_lens[METADATA_TYPESPEC]) as usize;
+			let size  = if max_len < size_for_big_index(3) { 2 } else { 4 };
+			let shift = log2(TAG_MASK);
+
+			let extends = read_idx(data, offset, size)?;
+			offset += size;
+
+			print!("  extends ");
+			match extends & TAG_MASK {
+				TYPEDEF => print!("TypeDef"),
+				TYPEREF => print!("TypeRef"),
+				TYPESPEC => print!("TypeSpec"),
+				_ => Err("Invalid TypeDefOrRef tag.")?,
+			};
+			println!(" {:#0x}", extends >> shift);
+		}
+
+		t += 1;
+	}
+
+	
 	// METADATA_MEMBERREF
 	// METADATA_CONSTANT
 	// METADATA_CUSTOMATTRIBUTE
