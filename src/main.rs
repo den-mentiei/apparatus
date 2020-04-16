@@ -607,6 +607,45 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	}
 	
 	// METADATA_PARAM
+	// II.22.33
+	if (valid_mask >> METADATA_PARAM) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Param table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("Param #{}", i);
+
+            // II.23.1.13
+			const IN:                u16 = 0x0001;
+			const OUT:               u16 = 0x0002;
+			const OPTIONAL:          u16 = 0x0010;
+			const HAS_DEFAULT:       u16 = 0x1000;
+			const HAS_FIELD_MARSHAL: u16 = 0x2000;
+			const UNUSED:            u16 = 0xcfe0;
+			let flags = data[offset..].read_u16()?;
+			offset += 2;
+
+			print!("  flags: {:#0x} -> ", flags);
+			if flags & IN != 0 { print!("In "); }
+			if flags & OUT != 0 { print!("Out "); }
+			if flags & OPTIONAL != 0 { print!("Optional "); }
+			if flags & HAS_DEFAULT != 0 { print!("HasDefault "); }
+			if flags & HAS_FIELD_MARSHAL != 0 { print!("HasFieldMarshal "); }
+			if flags & UNUSED != 0 { print!("Unused "); }
+			println!("");
+
+			let seq = data[offset..].read_u16()?;
+			offset += 2;
+			println!("  sequence: {:#0x}", seq);
+
+			let name_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			println!("  name index: {:#0x}", name_si);
+		}
+
+		t += 1;
+	}
+
 	// METADATA_INTERFACEIMPL
 	// METADATA_MEMBERREF
 	// METADATA_CONSTANT
