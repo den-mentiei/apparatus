@@ -796,34 +796,325 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 	}
 	
 	// METADATA_CUSTOMATTRIBUTE
+	if (valid_mask >> METADATA_CUSTOMATTRIBUTE) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("CustomAttribute table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* CustomAttribute #{}", i);
+		}
+
+		t += 1;
+	}
+
 	// METADATA_FIELDMARSHAL
+	if (valid_mask >> METADATA_FIELDMARSHAL) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("FieldMarshal table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* FieldMarshal #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_DECLSECURITY
+	if (valid_mask >> METADATA_DECLSECURITY) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("DeclSecurity table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* DeclSecurity #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_CLASSLAYOUT
+	if (valid_mask >> METADATA_CLASSLAYOUT) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("ClassLayout table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* ClassLayout #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_FIELDLAYOUT
+	if (valid_mask >> METADATA_FIELDLAYOUT) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("FieldLayout table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* FieldLayout #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_STANDALONESIG
+	if (valid_mask >> METADATA_STANDALONESIG) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("StandaloneSig table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* StandaloneSig #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_EVENTMAP
+	if (valid_mask >> METADATA_EVENTMAP) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("EventMap table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* EventMap #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_EVENT
+	if (valid_mask >> METADATA_EVENT) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Event table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* Event #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_PROPERTYMAP
+	if (valid_mask >> METADATA_PROPERTYMAP) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("PropertyMap table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* PropertyMap #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_PROPERTY
+	if (valid_mask >> METADATA_PROPERTY) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Property table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* Property #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_METHODSEMANTICS
+	if (valid_mask >> METADATA_METHODSEMANTICS) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("MethodSemantics table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* MethodSemantics #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_METHODIMPL
+	if (valid_mask >> METADATA_METHODIMPL) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("MethodImpl table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* MethodImpl #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_MODULEREF
+	if (valid_mask >> METADATA_MODULEREF) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("ModuleRef table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* ModuleRef #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_TYPESPEC
+	if (valid_mask >> METADATA_TYPESPEC) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("TypeSpec table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* TypeSpec #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_IMPLMAP
+	if (valid_mask >> METADATA_IMPLMAP) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("ImplMap table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* ImplMap #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_FIELDRVA
+	if (valid_mask >> METADATA_FIELDRVA) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("FieldRVA table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* FieldRVA #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLY
+	if (valid_mask >> METADATA_ASSEMBLY) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Assembly table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* Assembly #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLYPROCESSOR
+	if (valid_mask >> METADATA_ASSEMBLYPROCESSOR) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("AssemblyProcessor table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* AssemblyProcessor #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLYOS
+	if (valid_mask >> METADATA_ASSEMBLYOS) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("AssemblyOS table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* AssemblyOS #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLYREF
+	if (valid_mask >> METADATA_ASSEMBLYREF) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("AssemblyRef table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* AssemblyRef #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLYREFPROCESSOR
+	if (valid_mask >> METADATA_ASSEMBLYREFPROCESSOR) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("AssemblyRefProcessor table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* AssemblyRefProcessor #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_ASSEMBLYREFOS
+	if (valid_mask >> METADATA_ASSEMBLYREFOS) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("AssemblyRefOS table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* AssemblyRefOS #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_FILE
+	if (valid_mask >> METADATA_FILE) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("File table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* File #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_EXPORTEDTYPE
+	if (valid_mask >> METADATA_EXPORTEDTYPE) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("ExportedType table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* ExportedType #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_MANIFESTRESOURCE
+	if (valid_mask >> METADATA_MANIFESTRESOURCE) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("ManifestResource table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* ManifestResource #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_NESTEDCLASS
+	if (valid_mask >> METADATA_NESTEDCLASS) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("NestedClass table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* NestedClass #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_GENERICPARAM
+	if (valid_mask >> METADATA_GENERICPARAM) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("GenericParam table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* GenericParam #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_METHODSPEC
+	if (valid_mask >> METADATA_METHODSPEC) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("MethodSpec table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* MethodSpec #{}", i);
+		}
+
+		t += 1;
+	}
 	// METADATA_GENERICPARAMCONSTRAINT
+	if (valid_mask >> METADATA_GENERICPARAMCONSTRAINT) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("GenericParamConstraint table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* GenericParamConstraint #{}", i);
+		}
+
+		t += 1;
+	}
 
 	return Ok(());
 
