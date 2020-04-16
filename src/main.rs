@@ -415,6 +415,8 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("Module table with {} item(s).", len);
 
 		for i in 0..len {
+			println!("* Module #{}", i);
+			
 			let generation = data[offset..].read_u16()?;
 			if generation != 0 {
 				Err("Module has invalid generation.")?;
@@ -442,6 +444,8 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("TypeRef table with {} item(s).", len);
 
 		for i in 0..len {
+			println!("* TypeRef #{}", i);
+
 			// II.24.2.6:
 			const TAG_MASK: usize = 0b11;
 			const RESOLUTION_SCOPE_MODULE:       usize = 0;
@@ -485,7 +489,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("TypeDef table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("TypeDef #{}", i);
+			println!("* TypeDef #{}", i);
 
 			// TODO(dmi): @incomplete Parse flags.
 			let flags = data[offset..].read_u32()?;
@@ -545,7 +549,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("Field table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("Field #{}", i);
+			println!("* Field #{}", i);
 
 			let flags = data[offset..].read_u16()?;
 			println!("  flags: {:#0x}", flags);
@@ -569,7 +573,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("MethodDef table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("MethodDef #{}", i);
+			println!("* MethodDef #{}", i);
 
 			// TODO(dmi): @next Finally! Can find entry point method now
 			// and rush to get its IL-code.
@@ -608,7 +612,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("Param table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("Param #{}", i);
+			println!("* Param #{}", i);
 
             // II.23.1.13
 			const IN:                u16 = 0x0001;
@@ -650,7 +654,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("InterfaceImpl table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("InterfaceImpl #{}", i);
+			println!("* InterfaceImpl #{}", i);
 
 			let ti_size   = if table_lens[METADATA_TYPEDEF] <= 0xFFFF { 2 } else { 4 };
 			let class_idx = read_idx(data, offset, ti_size)?;
@@ -698,10 +702,10 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		println!("MemberRef table with {} item(s).", len);
 
 		for i in 0..len {
-			println!("MemberRef #{}", i);
+			println!("* MemberRef #{}", i);
 
 			// II.24.2.6
-			const TAG_MASK:  usize = 0b11;
+			const TAG_MASK:  usize = 0b111;
 			const TYPEDEF:   usize = 0;
 			const TYPEREF:   usize = 1;
 			const MODULEREF: usize = 2;
@@ -743,7 +747,54 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 	
-	// METADATA_CONSTANT
+	// METADATA_CONSTANT II.22.9
+	if (valid_mask >> METADATA_CONSTANT) & 1 == 1 {
+		let len  = row_lens[t * 4];
+		println!("Constant table with {} item(s).", len);
+
+		for i in 0..len {
+			println!("* Constant #{}", i);
+
+			// A 1-byte constant, followed by a 1-byte padding zero.
+			let ty = data[offset..].read_u8()?;
+			offset += 2;
+
+			// TODO(dmi): @incomplete As far as I understand, it can be
+			// followed by other bytes depending on type.
+
+			// II.24.2.6
+			const TAG_MASK: usize = 0b11;
+			const FIELD:    usize = 0;
+			const PARAM:    usize = 1;
+			const PROPERTY: usize = 2;
+
+			let max_len = max!(
+				table_lens[METADATA_PARAM],
+				table_lens[METADATA_FIELD],
+				table_lens[METADATA_PROPERTY]) as usize;
+			let size  = if max_len < size_for_big_index(3) { 2 } else { 4 };
+			let shift = log2(TAG_MASK);
+
+			let parent = read_idx(data, offset, size)?;
+			offset += size;
+
+			print!("  parent ");
+			match parent & TAG_MASK {
+				FIELD    => print!("Field"),
+				PARAM    => print!("Param"),
+				PROPERTY => print!("Property"),
+				_ => Err("Invalid HasConstant tag.")?,
+			};
+			println!(" {:#0x}", parent >> shift);
+			
+			let value_bi = read_idx(data, offset, bi_size)?;
+			offset += bi_size;
+			println!("  value: {:#0x}", value_bi);
+		}
+
+		t += 1;
+	}
+	
 	// METADATA_CUSTOMATTRIBUTE
 	// METADATA_FIELDMARSHAL
 	// METADATA_DECLSECURITY
