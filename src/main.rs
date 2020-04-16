@@ -960,6 +960,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_DECLSECURITY
 	if (valid_mask >> METADATA_DECLSECURITY) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -971,6 +972,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_CLASSLAYOUT
 	if (valid_mask >> METADATA_CLASSLAYOUT) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -982,6 +984,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_FIELDLAYOUT
 	if (valid_mask >> METADATA_FIELDLAYOUT) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -993,6 +996,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_STANDALONESIG
 	if (valid_mask >> METADATA_STANDALONESIG) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1004,6 +1008,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_EVENTMAP
 	if (valid_mask >> METADATA_EVENTMAP) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1015,6 +1020,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_EVENT
 	if (valid_mask >> METADATA_EVENT) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1026,6 +1032,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_PROPERTYMAP
 	if (valid_mask >> METADATA_PROPERTYMAP) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1037,6 +1044,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_PROPERTY
 	if (valid_mask >> METADATA_PROPERTY) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1048,6 +1056,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_METHODSEMANTICS
 	if (valid_mask >> METADATA_METHODSEMANTICS) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1059,6 +1068,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_METHODIMPL
 	if (valid_mask >> METADATA_METHODIMPL) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1070,6 +1080,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_MODULEREF
 	if (valid_mask >> METADATA_MODULEREF) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1081,6 +1092,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_TYPESPEC
 	if (valid_mask >> METADATA_TYPESPEC) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1092,6 +1104,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_IMPLMAP
 	if (valid_mask >> METADATA_IMPLMAP) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1103,6 +1116,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_FIELDRVA
 	if (valid_mask >> METADATA_FIELDRVA) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1114,6 +1128,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLY
 	if (valid_mask >> METADATA_ASSEMBLY) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1125,6 +1140,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLYPROCESSOR
 	if (valid_mask >> METADATA_ASSEMBLYPROCESSOR) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1136,6 +1152,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLYOS
 	if (valid_mask >> METADATA_ASSEMBLYOS) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1147,6 +1164,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLYREF
 	if (valid_mask >> METADATA_ASSEMBLYREF) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1158,6 +1176,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLYREFPROCESSOR
 	if (valid_mask >> METADATA_ASSEMBLYREFPROCESSOR) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1169,6 +1188,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_ASSEMBLYREFOS
 	if (valid_mask >> METADATA_ASSEMBLYREFOS) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1180,6 +1200,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_FILE
 	if (valid_mask >> METADATA_FILE) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1191,6 +1212,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_EXPORTEDTYPE
 	if (valid_mask >> METADATA_EXPORTEDTYPE) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1202,6 +1224,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_MANIFESTRESOURCE
 	if (valid_mask >> METADATA_MANIFESTRESOURCE) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1213,6 +1236,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_NESTEDCLASS
 	if (valid_mask >> METADATA_NESTEDCLASS) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1224,6 +1248,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_GENERICPARAM
 	if (valid_mask >> METADATA_GENERICPARAM) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1235,6 +1260,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_METHODSPEC
 	if (valid_mask >> METADATA_METHODSPEC) & 1 == 1 {
 		let len  = row_lens[t * 4];
@@ -1246,6 +1272,7 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 
 		t += 1;
 	}
+
 	// METADATA_GENERICPARAMCONSTRAINT
 	if (valid_mask >> METADATA_GENERICPARAMCONSTRAINT) & 1 == 1 {
 		let len  = row_lens[t * 4];
