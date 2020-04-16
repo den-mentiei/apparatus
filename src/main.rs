@@ -1204,6 +1204,10 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 			let name_si = read_idx(data, offset, si_size)?;
 			offset += si_size;
 			println!("  name index: {:#0x}", name_si);
+
+			let culture_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			println!("  culture index: {:#0x}", culture_si);
 		}
 
 		t += 1;
@@ -1233,13 +1237,75 @@ fn read_logical_tables(data: &[u8]) -> Result<()> {
 		t += 1;
 	}
 
-	// METADATA_ASSEMBLYREF
+	// METADATA_ASSEMBLYREF II.22.5
 	if (valid_mask >> METADATA_ASSEMBLYREF) & 1 == 1 {
 		let len  = row_lens[t * 4];
 		println!("AssemblyRef table with {} item(s).", len);
 
 		for i in 0..len {
 			println!("* AssemblyRef #{}", i);
+
+			let major_version    = data[offset..].read_u16()?;
+			offset += 2;
+			let minor_version    = data[offset..].read_u16()?;
+			offset += 2;
+			let build_number     = data[offset..].read_u16()?;
+			offset += 2;
+			let revision_number  = data[offset..].read_u16()?;
+			offset += 2;
+
+			println!("  version: {}.{}.{}.{}", major_version, minor_version, build_number, revision_number);
+
+			// II.23.1.2
+			// The assembly reference holds the full (unhashed) public key.
+			const PUBLIC_KEY: u32 = 0x0001;
+			// The implementation of this assembly used at runtime is
+			// not expected to match the version seen at compile time.
+			const RETARGETABLE: u32 = 0x0100;
+			// Reserved (a conforming implementation of the CLI can ignore this
+			// setting on read; some implementations might use this bit to
+			// indicate that a CIL-to-native-code compiler should generate
+			// CIL-to-native code map)
+			const DISABLE_JIT_COMPILE_OPTIMIZER: u32 = 0x4000;
+			// Reserved (a conforming implementation of the CLI can ignore this
+			// setting on read; some implementations might use this bit to
+			// indicate that a CIL-to-native-code compiler should generate
+			// CIL-to-native code map)
+			const ENABLE_JIT_COMPILE_TRACKING: u32 = 0x8000;
+			
+			let flags = data[offset..].read_u32()?;
+			offset += 4;
+
+			print!("  flags: {:#0x} -> ", flags);
+			if flags & PUBLIC_KEY != 0 {
+				print!("public-key ");
+			}
+			if flags & RETARGETABLE != 0 {
+				print!("retargetable ");
+			}
+			if flags & DISABLE_JIT_COMPILE_OPTIMIZER != 0 {
+				print!("disable-jit-compile-optimizer ");
+			}
+			if flags & ENABLE_JIT_COMPILE_TRACKING != 0 {
+				print!("enable-jit-compile-tracking");
+			}
+			println!();
+
+			let key_bi = read_idx(data, offset, bi_size)?;
+			offset += bi_size;
+			println!("  public key: {:#0x}", key_bi);
+
+			let name_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			println!("  name index: {:#0x}", name_si);
+
+			let culture_si = read_idx(data, offset, si_size)?;
+			offset += si_size;
+			println!("  culture index: {:#0x}", culture_si);
+
+			let hash_bi = read_idx(data, offset, bi_size)?;
+			offset += bi_size;
+			println!("  hash: {:#0x}", hash_bi);
 		}
 
 		t += 1;
