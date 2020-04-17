@@ -44,12 +44,6 @@ const DATA_DIRS_OFFSET: usize = STANDARD_FIELDS_32_SIZE + WINDOWS_FIELDS_32_SIZE
 const DATA_DIRS_COUNT: usize = 16;
 const DATA_DIR_INDEX_CLI_HEADER: usize = 14;
 
-const SECTION_SIZE: usize = 40;
-const SECTION_VIRTUAL_SIZE_OFFSET: usize  = 8;
-const SECTION_RVA_OFFSET: usize           = 12;
-const SECTION_RAW_DATA_SIZE_OFFSET: usize = 16;
-const SECTION_RAW_DATA_PTR_OFFSET: usize  = 20;
-
 // Taken from ECMA II.25.3.3.1
 
 // Shall be one.
@@ -125,16 +119,24 @@ fn main() -> Result<()> {
 	println!("Subject size: {} bytes.", data.len());
 
 	let header = Header::parse(data)?;
-	println!("CLI header RVA: {:#0x}", header.cli_rva);
-	println!("CLI header size: {:#0x}", header.cli_size);
+	println!("{:?}", header);
+	// println!("CLI header RVA: {:#0x}", header.cli_rva);
+	// println!("CLI header size: {:#0x}", header.cli_size);
 
 	Ok(())
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, Default)]
+#[derive(Debug, PartialEq, Clone, Default)]
 struct Header {
-	cli_rva:  usize,
-	cli_size: usize,
+	cli_rva:  u32,
+	cli_size: u32,
+	sections: Vec<Section>,
+}
+
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
+struct Section {
+	virtual_address: u32,
+	raw_address:     u32,
 }
 
 impl Header {
@@ -191,9 +193,25 @@ impl Header {
 		let cli_rva:  u32 = data.read(&mut offset)?;
 		let cli_size: u32 = data.read(&mut offset)?;
 
+		let n_sections = n_sections as usize;
+		let mut sections = Vec::with_capacity(n_sections);
+
+		const SECTION_SIZE: usize = 40;
+		for i in 0..n_sections {
+			let virtual_address: u32 = data.read_at(offset + 20)?;
+			let raw_address:     u32 = data.read_at(offset + 28)?;
+			offset += SECTION_SIZE;
+
+			sections.push(Section {
+				virtual_address,
+				raw_address,
+			});
+		}
+		
 		Ok(Header {
-			cli_rva:  cli_rva  as usize,
-			cli_size: cli_size as usize,
+			cli_rva,
+			cli_size,
+			sections,
 		})
 	}
 }
