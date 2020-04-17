@@ -1,3 +1,5 @@
+use log::{trace};
+
 use crate::Result;
 use crate::buf::Reading;
 
@@ -75,12 +77,12 @@ impl Header {
 		}
 
 		let n_sections: u16 = data.read(&mut offset)?;
-		println!("Number of sections: {}", n_sections);
+		trace!("Number of sections: {}", n_sections);
 
 		offset += 12;
 		
 		let opt_header_size: u16 = data.read(&mut offset)?;
-		println!("Size of optional header: {:#0x}", opt_header_size);
+		trace!("Size of optional header: {:#0x}", opt_header_size);
 
 		let characteristics: u16 = data.read(&mut offset)?;
 		if characteristics & IMAGE_FILE_RELOCS_STRIPPED != 0 {

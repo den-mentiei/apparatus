@@ -5,12 +5,17 @@
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
 
+extern crate log;
+
 mod buf;
 mod cli_header;
+mod logging;
 mod pe;
 mod utils;
 
 use std::path::Path;
+
+use log::{info, trace};
 
 use aps::Result;
 use buf::Reading;
@@ -20,13 +25,15 @@ use utils::{read_whole_file, dump, align_up, os_is_64};
 const SUBJECT: &str = "subject\\bin\\Debug\\netcoreapp3.1\\subject.dll";
 
 fn main() -> Result<()> {	
-	println!("Hello, sailor!");
+	logging::init();
+	
+	info!("Hello, sailor!");
 	let path = std::env::current_dir()?;
-	println!("The current directory is `{}`.", path.display());
-	println!("Subject: `{}`.", SUBJECT);
+	info!("The current directory is `{}`.", path.display());
+	info!("Subject: `{}`.", SUBJECT);
 
 	let data = &*read_whole_file(Path::new(SUBJECT))?;
-	println!("Subject size: {} bytes.", data.len());
+	info!("Subject size: {} bytes.", data.len());
 
 	let header = Header::parse(data)?;
 
