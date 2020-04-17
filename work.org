@@ -5,9 +5,9 @@
 - [ ] Cleanup and contextualize existing parsing code.
 - [ ] Add log.
 - [ ] Macros to simplify logical tables parsing.
-- [ ] Add RVA->Offset utility.
 - [ ] Parse ~#~~ logical tables.
 - [ ] Get rid of dynamic errors (allocations and code bloat).
+- [X] Add RVA->Offset utility.
 - [X] Add safe reads.
 - [X] ? Rewrite read to be gerenic over type.
 - [X] Add an ability to read from specified offset.

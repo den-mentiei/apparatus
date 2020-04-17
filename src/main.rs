@@ -119,10 +119,15 @@ fn main() -> Result<()> {
 	println!("Subject size: {} bytes.", data.len());
 
 	let header = Header::parse(data)?;
-	println!("{:?}", header);
-	// println!("CLI header RVA: {:#0x}", header.cli_rva);
-	// println!("CLI header size: {:#0x}", header.cli_size);
 
+	let cli_offset = header.rva2offset(header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
+	if cli_offset >= data.len() {
+		Err("CLI header RVA is wrong.")?;
+	}
+
+	let cli = &data[cli_offset..cli_offset + header.cli_size as usize];
+	dump(cli, 64);
+	
 	Ok(())
 }
 
@@ -135,11 +140,28 @@ struct Header {
 
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 struct Section {
+	virtual_size:    u32,
 	virtual_address: u32,
 	raw_address:     u32,
 }
 
 impl Header {
+	fn rva2offset(self: &Self, rva: usize) -> Option<usize> {
+		for s in &self.sections {
+			// TODO(dmi): @incomplete That should handle virtual vs raw size
+			// and alignments, etc.
+			let s_rva  = s.virtual_address as usize;
+			let s_size = s.virtual_size    as usize;
+			let s_raw  = s.raw_address     as usize;
+
+			if s_rva <= rva && rva < s_rva + s_size {
+				return Some(rva - s_rva + s_raw);
+			}
+		}
+
+		None
+	}
+	
 	fn parse(data: &[u8]) -> Result<Self> {
 		let magic: u16 = data.read_at(0)?;
 		if magic != DOS_MAGIC {
@@ -198,11 +220,13 @@ impl Header {
 
 		const SECTION_SIZE: usize = 40;
 		for i in 0..n_sections {
+			let virtual_size:    u32 = data.read_at(offset + 16)?;
 			let virtual_address: u32 = data.read_at(offset + 20)?;
 			let raw_address:     u32 = data.read_at(offset + 28)?;
 			offset += SECTION_SIZE;
 
 			sections.push(Section {
+				virtual_size,
 				virtual_address,
 				raw_address,
 			});
