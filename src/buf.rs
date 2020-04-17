@@ -91,14 +91,14 @@ read_impl!(u128, 16);
 read_impl!(i128, 16);
 
 pub trait Reading : Index<usize> + Index<RangeFrom<usize>> {
-    fn read_at<'a, T>(self: &'a Self, offset: usize) -> Result<T>
+	fn read_at<'a, T>(self: &'a Self, offset: usize) -> Result<T>
 	where
 		<Self as Index<RangeFrom<usize>>>::Output: 'a,
 		T: TryPart<'a, <Self as Index<RangeFrom<usize>>>::Output>
 	{
 		// TODO(dmi): @robustness Any offset checks?
 		T::try_read(&self[offset..])
-    }
+	}
 
 	fn read<'a, T>(self: &'a Self, offset: &mut usize) -> Result<T>
 	where
