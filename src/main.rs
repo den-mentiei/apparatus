@@ -124,61 +124,81 @@ fn main() -> Result<()> {
 	let data = &*read_whole_file(Path::new(SUBJECT))?;
 	println!("Subject size: {} bytes.", data.len());
 
-	let magic: u16 = data.read_at(0)?;
-	if magic != DOS_MAGIC {
-		Err("Signature is wrong!")?;
+	let header = Header::parse(data)?;
+	println!("CLI header RVA: {:#0x}", header.cli_rva);
+	println!("CLI header size: {:#0x}", header.cli_size);
+
+	Ok(())
+}
+
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
+struct Header {
+	cli_rva:  usize,
+	cli_size: usize,
+}
+
+impl Header {
+	fn parse(data: &[u8]) -> Result<Self> {
+		let magic: u16 = data.read_at(0)?;
+		if magic != DOS_MAGIC {
+			Err("Signature is wrong!")?;
+		}
+
+		let mut offset = data.read_at::<u32>(PE_OFFSET)? as usize;
+		
+		let magic: u32 = data.read(&mut offset)?;
+		if magic != PE_MAGIC {
+			Err("PE signature is wrong!")?;
+		}
+
+		let machine: u16 = data.read(&mut offset)?;
+		if machine != IMAGE_FILE_MACHINE_I386 {
+			Err("Unexpected target machine specified.")?;
+		}
+
+		let n_sections: u16 = data.read(&mut offset)?;
+		println!("Number of sections: {}", n_sections);
+
+		offset += 12;
+		
+		let opt_header_size: u16 = data.read(&mut offset)?;
+		println!("Size of optional header: {:#0x}", opt_header_size);
+
+		let characteristics: u16 = data.read(&mut offset)?;
+		if characteristics & IMAGE_FILE_RELOCS_STRIPPED != 0 {
+			Err("Relocations are not stripped.")?;
+		}
+		if characteristics & IMAGE_FILE_EXECUTABLE_IMAGE == 0 {
+			Err("File is not marked as an executable image.")?;
+		}
+		if characteristics & IMAGE_FILE_DLL != 0 {
+			Err("File is not a CIL executable, but a class library.")?;
+		}
+
+		let magic: u16 = data.read(&mut offset)?;
+		if magic != OPT_MAGIC_PE32 {
+			Err("Optional header magic is not PE32.")?;
+		}
+
+		offset += 90;
+
+		let n_data_dirs: u32 = data.read(&mut offset)?;
+		if n_data_dirs as usize != DATA_DIRS_COUNT {
+			Err("Number of data directories is invalid.")?;
+		}
+
+		offset += DATA_DIR_INDEX_CLI_HEADER * 8;
+		let cli_rva:  u32 = data.read(&mut offset)?;
+		let cli_size: u32 = data.read(&mut offset)?;
+
+		Ok(Header {
+			cli_rva:  cli_rva  as usize,
+			cli_size: cli_size as usize,
+		})
 	}
+}
 
-	let mut offset = data.read_at::<u32>(PE_OFFSET)? as usize;
-	
-	let magic: u32 = data.read(&mut offset)?;
-	if magic != PE_MAGIC {
-		Err("PE signature is wrong!")?;
-	}
-
-	let machine: u16 = data.read(&mut offset)?;
-	if machine != IMAGE_FILE_MACHINE_I386 {
-		Err("Unexpected target machine specified.")?;
-	}
-
-	let n_sections: u16 = data.read(&mut offset)?;
-	println!("Number of sections: {}", n_sections);
-
-	offset += 12;
-	
-	let opt_header_size: u16 = data.read(&mut offset)?;
-	println!("Size of optional header: {:#0x}", opt_header_size);
-
-	let characteristics: u16 = data.read(&mut offset)?;
-	if characteristics & IMAGE_FILE_RELOCS_STRIPPED != 0 {
-		Err("Relocations are not stripped.")?;
-	}
-	if characteristics & IMAGE_FILE_EXECUTABLE_IMAGE == 0 {
-		Err("File is not marked as an executable image.")?;
-	}
-	if characteristics & IMAGE_FILE_DLL != 0 {
-		Err("File is not a CIL executable, but a class library.")?;
-	}
-
-	let magic: u16 = data.read(&mut offset)?;
-	if magic != OPT_MAGIC_PE32 {
-		Err("Optional header magic is not PE32.")?;
-	}
-
-	offset += 90;
-
-	let n_data_dirs: u32 = data.read(&mut offset)?;
-	if n_data_dirs as usize != DATA_DIRS_COUNT {
-		Err("Number of data directories is invalid.")?;
-	}
-
-	offset += DATA_DIR_INDEX_CLI_HEADER * 8;
-	let cli_header_rva:  u32 = data.read(&mut offset)?;
-	let cli_header_size: u32 = data.read(&mut offset)?;
-	println!("CLI header RVA: {:#0x}", cli_header_rva);
-	println!("CLI header size: {:#0x}", cli_header_size);
-
-	// let section_table = &opt_header[opt_header_size..];
+// let section_table = &opt_header[opt_header_size..];
 
 	// let mut cli_header_offset = None;
 	
@@ -327,9 +347,6 @@ fn main() -> Result<()> {
 		
 	// 	s += 8 + align_up(len, 4);
 	// }
-	
-	Ok(())
-}
 
 // macro_rules! max {
 // 	($x:expr) => ($x);

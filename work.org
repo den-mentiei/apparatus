@@ -2,15 +2,16 @@
 
 ** Things
 
-- [ ] ? Rewrite read to be gerenic over type.
-- [ ] Add an ability to read from specified offset.
-- [ ] Add an ability to read and increment offset.
+- [ ] Cleanup and contextualize existing parsing code.
+- [ ] Add log.
 - [ ] Macros to simplify logical tables parsing.
 - [ ] Add RVA->Offset utility.
 - [ ] Parse ~#~~ logical tables.
-- [ ] Add safe reads.
-- [ ] ? endianness support for ~Buf~.
 - [ ] Get rid of dynamic errors (allocations and code bloat).
+- [X] Add safe reads.
+- [X] ? Rewrite read to be gerenic over type.
+- [X] Add an ability to read from specified offset.
+- [X] Add an ability to read and increment offset.
 
 ** Consider
 
