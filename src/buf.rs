@@ -1,3 +1,5 @@
+use std::ops::{Index, RangeFrom};
+
 #[derive(Debug)]
 pub enum Error {
 	// TODO(dmi): @robust Add `available` and `required` sizes.
@@ -16,71 +18,100 @@ impl std::fmt::Display for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub trait Buf {
-	fn read_u8(&self) -> Result<u8>;
-	fn read_i8(&self) -> Result<i8>;
-
-	fn read_u16(&self) -> Result<u16>;
-	fn read_i16(&self) -> Result<i16>;
-
-	fn read_u32(&self) -> Result<u32>;
-	fn read_i32(&self) -> Result<i32>;
-
-	fn read_u64(&self) -> Result<u64>;
-	fn read_i64(&self) -> Result<i64>;
+// Must not fail.
+pub trait Part<Src: ?Sized = [u8]> {
+	fn read(src: &Src) -> Self;
 }
 
+pub trait TryPart<'a, Src: ?Sized = [u8]> where Self: 'a + Sized {
+	fn try_read(src: &'a Src) -> Result<Self>;
+}
+
+pub trait PartSize {
+	fn size() -> usize;
+}
+
+// TODO(dmi): @idea impl<'a, Src: ?Sized, T> TryBuf<'a, Src> for T where T: 'a { ... }
+
 macro_rules! read_impl {
-	($self:ident, $ty: ty) => {
-		{
-			const SIZE: usize = std::mem::size_of::<$ty>();
-			debug_assert!($self.len() >= SIZE);
-			unsafe {
-				Ok(std::ptr::read($self.as_ptr() as *const $ty))
+	($ty:tt, $size:expr) => {
+		impl PartSize for $ty {
+			#[inline(always)]
+			fn size() -> usize {
+				std::mem::size_of::<$ty>()
+			}
+		}
+		
+		impl<'a> Part for $ty {
+			#[inline]
+			fn read(src: &[u8]) -> Self {
+				debug_assert!(src.len() >= $size);
+				unsafe { std::ptr::read(src.as_ptr() as *const $ty) }
+			}
+		}
+
+		impl<'a> TryPart<'a> for $ty where $ty: Part {
+			#[inline]
+			fn try_read(src: &'a [u8]) -> Result<Self> {
+				if $size > src.len () {
+					Err($crate::buf::Error::NotEnoughData)
+				} else {
+					Ok(Part::read(src))
+				}
+			}
+		}
+
+		impl<'a, Src> Part<Src> for $ty where Src: AsRef<[u8]> {
+			#[inline]
+			fn read(src: &Src) -> Self {
+				let src = src.as_ref();
+				Self::read(src)
+			}
+		}
+
+		impl<'a, Src> TryPart<'a, Src> for $ty where $ty: Part<Src>, Src: AsRef<[u8]> {
+			#[inline]
+			fn try_read(src: &'a Src) -> Result<Self> {
+				let src = src.as_ref();
+				Self::try_read(src)
 			}
 		}
 	}
 }
 
-impl Buf for [u8] {
-	#[inline]
-	fn read_u8(&self) -> Result<u8> { read_impl!(self, u8) }
-	#[inline]
-	fn read_i8(&self) -> Result<i8> { read_impl!(self, i8) }
+read_impl!(u8,   1);
+read_impl!(i8,   1);
+read_impl!(u16,  2);
+read_impl!(i16,  2);
+read_impl!(u32,  4);
+read_impl!(i32,  4);
+read_impl!(u64,  8);
+read_impl!(i64,  8);
+read_impl!(u128, 16);
+read_impl!(i128, 16);
 
-	#[inline]
-	fn read_u16(&self) -> Result<u16> { read_impl!(self, u16) }
-	#[inline]
-	fn read_i16(&self) -> Result<i16> { read_impl!(self, i16) }
+pub trait Reading : Index<usize> + Index<RangeFrom<usize>> {
+    fn read_at<'a, T>(self: &'a Self, offset: usize) -> Result<T>
+	where
+		<Self as Index<RangeFrom<usize>>>::Output: 'a,
+		T: TryPart<'a, <Self as Index<RangeFrom<usize>>>::Output>
+	{
+		// TODO(dmi): @robustness Any offset checks?
+		T::try_read(&self[offset..])
+    }
 
-	#[inline]
-	fn read_u32(&self) -> Result<u32> { read_impl!(self, u32) }
-	#[inline]
-	fn read_i32(&self) -> Result<i32> { read_impl!(self, i32) }
-
-	#[inline]
-	fn read_u64(&self) -> Result<u64> { read_impl!(self, u64) }
-	#[inline]
-	fn read_i64(&self) -> Result<i64> { read_impl!(self, i64) }
-}
-
-macro_rules! delegate {
-	($name: ident, $ty: ty) => {
-		#[inline]
-		fn $name(&self) -> Result<$ty> { (**self).$name() }
+	fn read<'a, T>(self: &'a Self, offset: &mut usize) -> Result<T>
+	where
+		<Self as Index<RangeFrom<usize>>>::Output: 'a,
+		T: TryPart<'a, <Self as Index<RangeFrom<usize>>>::Output> + PartSize
+	{
+		// TODO(dmi): @robustness Any offset checks?
+		let o = *offset;
+		T::try_read(&self[o..]).and_then(|x| {
+			*offset += T::size();
+			Ok(x)
+		})
 	}
 }
 
-impl<B: Buf> Buf for Box<B> {
-	delegate!(read_u8, u8);
-	delegate!(read_i8, i8);
-
-	delegate!(read_u16, u16);
-	delegate!(read_i16, i16);
-
-	delegate!(read_u32, u32);
-	delegate!(read_i32, i32);
-
-	delegate!(read_u64, u64);
-	delegate!(read_i64, i64);
-}
+impl<T> Reading for T where T: ?Sized + Index<usize> + Index<RangeFrom<usize>> {}
