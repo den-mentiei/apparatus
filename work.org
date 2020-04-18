@@ -15,6 +15,10 @@
 
 ** Consider
 
+- Script NTCore CFF Explorer to dump metadata and then generate tests
+  or something.
+  https://ntcore.com/files/cffscriptv2.htm
+
 - Implementing own quote-supporting macro as a custom proc macro.
   https://github.com/dtolnay/quote
   https://github.com/dtolnay/paste
