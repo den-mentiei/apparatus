@@ -14,3 +14,4 @@ log = { version = "0.4", features = ["max_level_trace", "release_max_level_info"
 
 [profile.release]
 lto = true
+panic = 'abort'
