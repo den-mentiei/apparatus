@@ -1,5 +1,7 @@
 use std::ops::{Index, RangeFrom};
 
+use crate::error::ApsError;
+
 #[derive(Debug)]
 pub enum Error {
 	// TODO(dmi): @robust Add `available` and `required` sizes.
@@ -13,6 +15,12 @@ impl std::fmt::Display for Error {
 		match *self {
 			Error::NotEnoughData => { write!(fmt, "not enough input data!") },
 		}
+	}
+}
+
+impl From<Error> for ApsError {
+	fn from(err: Error) -> Self {
+		ApsError::Parse(err)
 	}
 }
 

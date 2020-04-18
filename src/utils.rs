@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-use aps::Result;
+use crate::Result;
 
 pub fn align_up(x: usize, n: usize) -> usize {
 	debug_assert!((n & (n - 1)) == 0);
@@ -32,7 +32,7 @@ pub fn dump(data: &[u8], n: usize) {
 		for x in row {
 			print!("{:02x} ", x);
 		}
-		for i in row.len()..COLUMNS {
+		for _ in row.len()..COLUMNS {
 			print!("__ ");
 		}
 		print!("| ");
@@ -59,7 +59,7 @@ pub fn dump(data: &[u8], n: usize) {
 	}
 	
 	fn dash() {
-		for i in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
+		for _ in 0..(OFFSET_WIDTH + 3 + COLUMNS * 3 + COLUMNS + 2) {
 			print!("-");
 		}
 		println!();

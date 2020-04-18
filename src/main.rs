@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
-
 #![allow(unused_imports)]
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
@@ -9,6 +8,7 @@ extern crate log;
 
 mod buf;
 mod cli_header;
+mod error;
 mod logging;
 mod pe;
 mod utils;
@@ -17,8 +17,8 @@ use std::path::Path;
 
 use log::{info, trace};
 
-use aps::Result;
 use buf::Reading;
+use error::Result;
 use pe::Header;
 use utils::{read_whole_file, dump, align_up, os_is_64};
 
