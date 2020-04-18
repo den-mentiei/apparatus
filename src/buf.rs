@@ -1,6 +1,6 @@
 use std::ops::{Index, RangeFrom};
 
-use crate::error::ApsError;
+use crate::error;
 
 #[derive(Debug)]
 pub enum Error {
@@ -18,9 +18,9 @@ impl std::fmt::Display for Error {
 	}
 }
 
-impl From<Error> for ApsError {
+impl From<Error> for error::Error {
 	fn from(err: Error) -> Self {
-		ApsError::Parse(err)
+		error::Error::Parse(err)
 	}
 }
 

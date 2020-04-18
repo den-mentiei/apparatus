@@ -5,7 +5,7 @@
 - [ ] Cleanup and contextualize existing parsing code.
 - [ ] Macros to simplify logical tables parsing.
 - [ ] Parse ~#~~ logical tables.
-- [ ] Get rid of dynamic errors (allocations and code bloat).
+- [X] Get rid of dynamic errors (allocations and code bloat).
 - [X] Add log.
 - [X] Add RVA->Offset utility.
 - [X] Add safe reads.

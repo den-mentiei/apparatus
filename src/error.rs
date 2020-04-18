@@ -5,45 +5,45 @@ use std::io;
 use crate::buf;
 
 #[derive(Debug)]
-pub enum ApsError {
+pub enum Error {
 	Unknown,
 	General(&'static str),
 	IO(io::Error),
 	Parse(buf::Error),
 }
 
-impl fmt::Display for ApsError {
+impl fmt::Display for Error {
 	fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
 		match *self {
-			ApsError::Unknown        => write!(fmt, "Unknown error"),
-			ApsError::General(ref s) => write!(fmt, "{}", s),
-			ApsError::IO(ref e)      => write!(fmt, "IO error: {}", e),
-			ApsError::Parse(ref e)   => write!(fmt, "Parsing error: {}", e),
+			Error::Unknown        => write!(fmt, "Unknown error"),
+			Error::General(ref s) => write!(fmt, "{}", s),
+			Error::IO(ref e)      => write!(fmt, "IO error: {}", e),
+			Error::Parse(ref e)   => write!(fmt, "Parsing error: {}", e),
 		}
 	}
 }
 
-impl error::Error for ApsError {
+impl error::Error for Error {
 	fn cause(&self) -> Option<&dyn error::Error> {
 		match *self {
-			ApsError::Unknown      => None,
-			ApsError::General(_)   => None,
-			ApsError::IO(ref e)    => Some(e),
-			ApsError::Parse(ref e) => Some(e),
+			Error::Unknown      => None,
+			Error::General(_)   => None,
+			Error::IO(ref e)    => Some(e),
+			Error::Parse(ref e) => Some(e),
 		}
 	}
 }
 
-impl From<&'static str> for ApsError {
+impl From<&'static str> for Error {
 	fn from(s: &'static str) -> Self {
-		ApsError::General(s)
+		Error::General(s)
 	}
 }
 
-impl From<io::Error> for ApsError {
+impl From<io::Error> for Error {
 	fn from(err: io::Error) -> Self {
-		ApsError::IO(err)
+		Error::IO(err)
 	}
 }
 
-pub type Result<T, E = ApsError> = std::result::Result<T, E>;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
