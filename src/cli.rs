@@ -5,7 +5,7 @@ use log::{trace};
 use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
-use crate::utils::{dump, os_is_64};
+use crate::utils::{align_up, dump, os_is_64};
 
 // Taken from ECMA II.25.3.3.1
 
@@ -151,12 +151,16 @@ impl Header {
 }
 
 #[derive(Debug, PartialEq, Clone, Default)]
-pub struct Metadata {
-	
+pub struct Metadata<'a> {
+	logical_tables: Option<&'a [u8]>,
+	strings:        Option< &'a [u8]>,
+	user_strings:   Option<  &'a [u8]>,
+	blobs:          Option< &'a [u8]>,
+	guids:          Option<  &'a [u8]>,
 }
 
-impl Metadata {
-	pub fn parse(data: &[u8]) -> Result<Metadata> {
+impl<'a> Metadata<'a> {
+	pub fn parse(data: &[u8]) -> Result<Metadata<'a>> {
 		let mut offset = &mut 0usize;
 
 		let magic: u32 = data.read(offset)?;
@@ -175,15 +179,14 @@ impl Metadata {
 			.map_err(|_| Error::General("Version string is not a valid utf-8 string."))?;
 		trace!("Version: {}", version);
 
-		Ok(Metadata {})
+		*offset += align_up(len_version as usize, 4) + 2;
+
+		let n_streams: u16 = data.read(offset)?;
+		trace!("Metadata streams: {}", n_streams);
+
+		Ok(Metadata::default())
 	}
 }
-
-
-	// let offset = 16 + align_up(len_version, 4);
-
-	// let n_streams = metadata[(offset + 2)..].read_u16()? as usize;
-	// println!("Metadata streams: {}", n_streams);
 
 	// let streams = &metadata[(offset + 4)..];
 
