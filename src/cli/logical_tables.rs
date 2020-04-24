@@ -46,18 +46,19 @@ const METADATA_GENERICPARAM:           usize = 0x2A;
 const METADATA_METHODSPEC:             usize = 0x2B;
 const METADATA_GENERICPARAMCONSTRAINT: usize = 0x2C;
 
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Copy, Clone)]
 pub struct Tables {
 	pub string_index_bytes: usize,
 	pub guid_index_bytes:   usize,
 	pub blob_index_bytes:   usize,
+	pub lens: [u32; 64],
 }
 
 impl Tables {
 	pub fn parse(data: &[u8]) -> Result<Tables> {
 		let mut offset = &mut 0usize;
 
-		// Reserverd, major version, minor version.
+		// Reserverd1, major version, minor version.
 		*offset += 6;
 		
 		// The HeapSizes field is a bitvector that encodes the width of
@@ -74,10 +75,32 @@ impl Tables {
 		let guid_index_bytes:   usize = if heap_sizes & 0x02 == 0 { 2 } else { 4 };
 		let blob_index_bytes:   usize = if heap_sizes & 0x04 == 0 { 2 } else { 4 };
 
+		// Reserved2
+		*offset += 1;
+		
+		// The Valid field is a 64-bit bitvector that has a specific bit
+		// set for each table that is stored in the stream; the mapping of
+		// tables to indexes is given at the start of II.22.
+		let valid_mask: u64 = data.read(offset)?;
+		let n = valid_mask.count_ones() as usize;
+		trace!("Valid mask: {:#066b} -> {} table(s).", valid_mask, n);
+
+		// Sorted.
+		*offset += 8;
+		
+		let mut lens = [0u32; 64];
+		for i in 0..lens.len() {
+			if (valid_mask >> i) & 1 == 1 {
+				lens[i] = data.read(offset)?;
+				trace!("Table #{} has {:#0x} item(s).", i, lens[i]);
+			}
+		}
+		
 		Ok(Tables {
 			string_index_bytes,
 			guid_index_bytes,
 			blob_index_bytes,
+			lens,
 		})
 	}
 }

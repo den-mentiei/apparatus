@@ -59,8 +59,6 @@ fn main() -> Result<()> {
 	if let Some(logical_tables) = cli_metadata.logical_tables {
 		trace!("Parsing logical tables...");
 		let tables = cli::Tables::parse(logical_tables)?;
-
-		trace!("{:#?}", tables);
 	}
 	
 	Ok(())

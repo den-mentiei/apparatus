@@ -16,46 +16,8 @@ pub use self::logical_tables::*;
 
 // II.24.2.6
 // fn read_logical_tables(data: &[u8]) -> Result<()> {
-// 	// The HeapSizes field is a bitvector that encodes the width of
-// 	// indexes into the various heaps. If bit 0 is set, indexes into
-// 	// the #String heap are 4 bytes wide; if bit 1 is set, indexes
-// 	// into the #GUID heap are 4 bytes wide; if bit 2 is set, indexes
-// 	// into the #Blob heap are 4 bytes wide. Conversely, if the
-// 	// HeapSize bit for a particular heap is not set, indexes into
-// 	// that heap are 2 bytes wide.
-// 	let heap_sizes = data[6..].read_u8()?;
-// 	println!("Heap sizes: {:#010b}", heap_sizes);
-// 	let si_size: usize = if heap_sizes & 0x01 == 0 { 2 } else { 4 };
-// 	let gi_size: usize = if heap_sizes & 0x02 == 0 { 2 } else { 4 };
-// 	let bi_size: usize = if heap_sizes & 0x04 == 0 { 2 } else { 4 };
-// 	println!("String index size: {} byte(s).", si_size);
-// 	println!("Guid index size: {} byte(s).", gi_size);
-// 	println!("Blob index size: {} byte(s).", bi_size);
-	
-// 	// The Valid field is a 64-bit bitvector that has a specific bit
-// 	// set for each table that is stored in the stream; the mapping of
-// 	// tables to indexes is given at the start of II.22.
-// 	let valid_mask = data[8..].read_u64()? as usize;
-// 	let n = valid_mask.count_ones() as usize;
-// 	println!("Valid mask: {:#066b} -> {} table(s).", valid_mask, n);
-
-// 	let row_lens = &data[24..24 + n * 4];
 // 	let tables   = &data[24 + n * 4..];
 
-// 	let mut offset: usize = 0;
-// 	let mut t: usize = 0;
-// 	let data = &tables[offset..];
-
-// 	let mut table_lens = [0u32; 64];
-// 	let mut r: usize = 0;
-// 	for i in 0..table_lens.len() {
-// 		if (valid_mask >> i) & 1 == 1 {
-// 			table_lens[i] = row_lens[r..].read_u32()?;
-// 			r += 4;
-// 		}
-// 	}
-// 	let table_lens = table_lens;
-	
 // 	// II.24.2.6: The physical representation of a row cell e at a
 // 	// column with type C is defined as follows: 
 // 	// - If e is a constant, it is stored using the number of bytes as
