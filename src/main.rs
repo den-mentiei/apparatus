@@ -53,7 +53,8 @@ fn main() -> Result<()> {
 	}
 
 	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
-	dump(metadata, 64);
+	let cli_metadata = cli::Metadata::parse(metadata)?;
+	trace!("{:#?}", cli_metadata);
 	
 	Ok(())
 }

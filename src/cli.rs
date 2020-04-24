@@ -1,6 +1,9 @@
+use std::str;
+
 use log::{trace};
 
 use crate::Result;
+use crate::error::Error;
 use crate::buf::Reading;
 use crate::utils::{dump, os_is_64};
 
@@ -154,42 +157,28 @@ pub struct Metadata {
 
 impl Metadata {
 	pub fn parse(data: &[u8]) -> Result<Metadata> {
+		let mut offset = &mut 0usize;
+
+		let magic: u32 = data.read(offset)?;
+		if magic != METADATA_MAGIC {
+			Err("Metadata signature is wrong.")?;
+		}
+
+		*offset += 8;
+
+		let len_version: u32 = data.read(offset)?;
+		if len_version > 255 {
+			Err("Metadata version length is incorrect.")?;
+		}
+		
+		let version = str::from_utf8(&data[16..(16 + len_version as usize)])
+			.map_err(|_| Error::General("Version string is not a valid utf-8 string."))?;
+		trace!("Version: {}", version);
+
 		Ok(Metadata {})
 	}
 }
 
-	// // TODO(dmi): @cleanup This copy-pasta should be factored out.
-	// let mut metadata_offset = None;
-	// let mut s: usize = 0;
-	// for i in 0..n_sections {
-	// 	let section = &section_table[s..];
-	// 	let vsize = section[SECTION_VIRTUAL_SIZE_OFFSET..].read_u32()? as usize;
-	// 	let rva   = section[SECTION_RVA_OFFSET..].read_u32()? as usize;
-	// 	let rsize = section[SECTION_RAW_DATA_SIZE_OFFSET..].read_u32()? as usize;
-	// 	let raw   = section[SECTION_RAW_DATA_PTR_OFFSET..].read_u32()? as usize;
-
-	// 	if metadata_rva >= rva && metadata_rva < rva + vsize {
-	// 		metadata_offset = Some(metadata_rva - rva + raw);
-	// 	}
-
-	// 	s += SECTION_SIZE;
-	// }
-
-	// let metadata_offset = metadata_offset.ok_or("Failed to find CLI metadata.")?;
-	// let metadata = &data[metadata_offset..];
-
-	// let magic = metadata.read_u32()?;
-	// if magic != METADATA_MAGIC {
-	// 	Err("Metadata signature is wrong.")?;
-	// }
-
-	// let len_version = metadata[12..].read_u32()? as usize;
-	// if len_version > 255 {
-	// 	Err("Metadata version length is incorrect.")?;
-	// }
-	
-	// let version = std::str::from_utf8(&metadata[16..(16 + len_version)])?;
-	// println!("Version: {}", version);
 
 	// let offset = 16 + align_up(len_version, 4);
 
