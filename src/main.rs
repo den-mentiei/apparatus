@@ -55,6 +55,13 @@ fn main() -> Result<()> {
 	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
 	let cli_metadata = cli::Metadata::parse(metadata)?;
 	// trace!("{:#?}", cli_metadata);
+
+	if let Some(logical_tables) = cli_metadata.logical_tables {
+		trace!("Parsing logical tables...");
+		let tables = cli::Tables::parse(logical_tables)?;
+
+		trace!("{:#?}", tables);
+	}
 	
 	Ok(())
 }

@@ -4,8 +4,9 @@ use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
 
-// Taken from ECMA II.22
+// II.24.2.6
 
+// Taken from ECMA II.22
 const METADATA_MODULE:                 usize = 0x00;
 const METADATA_TYPEREF:                usize = 0x01;
 const METADATA_TYPEDEF:                usize = 0x02;
@@ -47,10 +48,36 @@ const METADATA_GENERICPARAMCONSTRAINT: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Tables {
+	pub string_index_bytes: usize,
+	pub guid_index_bytes:   usize,
+	pub blob_index_bytes:   usize,
 }
 
 impl Tables {
 	pub fn parse(data: &[u8]) -> Result<Tables> {
-		Ok(Tables::default())
+		let mut offset = &mut 0usize;
+
+		// Reserverd, major version, minor version.
+		*offset += 6;
+		
+		// The HeapSizes field is a bitvector that encodes the width of
+		// indexes into the various heaps. If bit 0 is set, indexes into
+		// the #String heap are 4 bytes wide; if bit 1 is set, indexes
+		// into the #GUID heap are 4 bytes wide; if bit 2 is set, indexes
+		// into the #Blob heap are 4 bytes wide. Conversely, if the
+		// HeapSize bit for a particular heap is not set, indexes into
+		// that heap are 2 bytes wide.
+		let heap_sizes: u8 = data.read(offset)?;
+		trace!("Heap sizes: {:#010b}", heap_sizes);
+
+		let string_index_bytes: usize = if heap_sizes & 0x01 == 0 { 2 } else { 4 };
+		let guid_index_bytes:   usize = if heap_sizes & 0x02 == 0 { 2 } else { 4 };
+		let blob_index_bytes:   usize = if heap_sizes & 0x04 == 0 { 2 } else { 4 };
+
+		Ok(Tables {
+			string_index_bytes,
+			guid_index_bytes,
+			blob_index_bytes,
+		})
 	}
 }

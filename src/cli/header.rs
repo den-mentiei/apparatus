@@ -111,11 +111,11 @@ impl Header {
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Metadata<'a> {
-	logical_tables: Option<&'a [u8]>,
-	strings:        Option<&'a [u8]>,
-	user_strings:   Option<&'a [u8]>,
-	blobs:          Option<&'a [u8]>,
-	guids:          Option<&'a [u8]>,
+	pub logical_tables: Option<&'a [u8]>,
+	pub strings:        Option<&'a [u8]>,
+	pub user_strings:   Option<&'a [u8]>,
+	pub blobs:          Option<&'a [u8]>,
+	pub guids:          Option<&'a [u8]>,
 }
 
 impl<'a> Metadata<'a> {
