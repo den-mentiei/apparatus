@@ -7,7 +7,7 @@
 extern crate log;
 
 mod buf;
-mod cli_header;
+mod cli;
 mod error;
 mod logging;
 mod pe;
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
 	}
 
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
-	let cli_header = cli_header::parse(cli, &pe_header)?;
+	let cli_header = cli::Header::parse(cli, &pe_header)?;
 
 	trace!("{:?}", cli_header);
 	

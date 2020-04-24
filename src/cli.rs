@@ -74,19 +74,20 @@ pub struct Header {
 
 }
 
-pub fn parse(data: &[u8], pe: &crate::pe::Header) -> Result<Header> {
-	dump(data, 64);
+impl Header {
+	pub fn parse(data: &[u8], pe: &crate::pe::Header) -> Result<Header> {
+		dump(data, 64);
 
-	let mut offset = &mut 0usize;
-	
-	let size: u32 = data.read(offset)?;
-	if size != pe.cli_size {
-		Err("CLI header specifies wrong size.")?;
+		let mut offset = &mut 0usize;
+		
+		let size: u32 = data.read(offset)?;
+		if size != pe.cli_size {
+			Err("CLI header specifies wrong size.")?;
+		}
+
+		Ok(Header {})
 	}
-
-	Ok(Header {})
 }
-
 
 	// // Offsets are defined in ECMA II.25.3.3.
 	// let rt_major = cli_header[4..].read_u16()?;
