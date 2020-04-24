@@ -160,7 +160,7 @@ pub struct Metadata<'a> {
 }
 
 impl<'a> Metadata<'a> {
-	pub fn parse(data: &[u8]) -> Result<Metadata<'a>> {
+	pub fn parse(data: &'a [u8]) -> Result<Metadata<'a>> {
 		let mut offset = &mut 0usize;
 
 		let magic: u32 = data.read(offset)?;
@@ -191,8 +191,8 @@ impl<'a> Metadata<'a> {
 		let mut guids =          None;
 
 		for i in 0..n_streams {
-			let s_offset: u32 = data.read(offset)?;
-			let s_size:   u32 = data.read(offset)?;
+			let s_offset = data.read::<u32>(offset)? as usize;
+			let s_size   = data.read::<u32>(offset)? as usize;
 
 			let name = &data[*offset..];
 			let mut len = 0;
@@ -212,6 +212,17 @@ impl<'a> Metadata<'a> {
 
 			trace!("Found stream: `{}` at {:#0x}, {:#0x} byte(s).", name, s_offset, s_size);
 
+			let stream_data = &data[s_offset..s_offset + s_size];
+			
+			match name {
+				"#~"       => logical_tables = Some(stream_data),
+				"#Strings" => strings = Some(stream_data),
+				"#US"      => user_strings = Some(stream_data),
+				"#GUID"    => guids = Some(stream_data),
+				"#Blob"    => blobs = Some(stream_data),
+				_ => Err("Unknown section name.")?,
+			};
+			
 			*offset += align_up(len, 4);
 		}
 		

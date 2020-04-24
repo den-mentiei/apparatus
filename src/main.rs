@@ -36,7 +36,7 @@ fn main() -> Result<()> {
 	info!("Subject size: {} bytes.", data.len());
 
 	let pe_header = Header::parse(data)?;
-	trace!("{:#?}", pe_header);
+	// trace!("{:#?}", pe_header);
 
 	let cli_offset = pe_header.rva2offset(pe_header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
 	if cli_offset >= data.len() {
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
 
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
 	let cli_header = cli::Header::parse(cli, &pe_header)?;
-	trace!("{:#?}", cli_header);
+	// trace!("{:#?}", cli_header);
 
 	let metadata_offset = pe_header.rva2offset(cli_header.metadata_rva as usize).ok_or("Failed to convert CLI metadata RVA.")?;
 	if metadata_offset >= data.len() {
@@ -54,7 +54,7 @@ fn main() -> Result<()> {
 
 	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
 	let cli_metadata = cli::Metadata::parse(metadata)?;
-	trace!("{:#?}", cli_metadata);
+	// trace!("{:#?}", cli_metadata);
 	
 	Ok(())
 }
