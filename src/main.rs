@@ -36,6 +36,7 @@ fn main() -> Result<()> {
 	info!("Subject size: {} bytes.", data.len());
 
 	let pe_header = Header::parse(data)?;
+	trace!("{:#?}", pe_header);
 
 	let cli_offset = pe_header.rva2offset(pe_header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
 	if cli_offset >= data.len() {
@@ -45,7 +46,7 @@ fn main() -> Result<()> {
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
 	let cli_header = cli::Header::parse(cli, &pe_header)?;
 
-	trace!("{:?}", cli_header);
+	trace!("{:#?}", cli_header);
 	
 	Ok(())
 }

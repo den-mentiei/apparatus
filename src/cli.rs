@@ -85,14 +85,14 @@ impl Header {
 			Err("CLI header specifies wrong size.")?;
 		}
 
+		// Offsets are defined in ECMA II.25.3.3.
+		let rt_major: u16 = data.read(offset)?;
+		let rt_minor: u16 = data.read(offset)?;
+		trace!("CLI runtime: {}.{}", rt_major, rt_minor);
+
 		Ok(Header {})
 	}
 }
-
-	// // Offsets are defined in ECMA II.25.3.3.
-	// let rt_major = cli_header[4..].read_u16()?;
-	// let rt_minor = cli_header[6..].read_u16()?;
-	// println!("CLI runtime: {}.{}", rt_major, rt_minor);
 
 	// let metadata_rva  = cli_header[8..].read_u32()? as usize;
 	// let metadata_size = cli_header[12..].read_u32()? as usize;
