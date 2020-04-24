@@ -1,3 +1,9 @@
+use log::{trace};
+
+use crate::Result;
+use crate::error::Error;
+use crate::buf::Reading;
+
 // Taken from ECMA II.22
 
 const METADATA_MODULE:                 usize = 0x00;
@@ -38,3 +44,13 @@ const METADATA_NESTEDCLASS:            usize = 0x29;
 const METADATA_GENERICPARAM:           usize = 0x2A;
 const METADATA_METHODSPEC:             usize = 0x2B;
 const METADATA_GENERICPARAMCONSTRAINT: usize = 0x2C;
+
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Tables {
+}
+
+impl Tables {
+	pub fn parse(data: &[u8]) -> Result<Tables> {
+		Ok(Tables::default())
+	}
+}
