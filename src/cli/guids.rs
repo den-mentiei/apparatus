@@ -1,3 +1,5 @@
+use log::{debug};
+
 use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
@@ -10,7 +12,7 @@ pub fn dump_guids(data: &[u8]) -> Result<()> {
 	// TODO(dmi): @shortcut It should use debug! and only
 	// format guids if debug log levle is enabled.
 	
-	println!("Available guids:");
+	debug!("Available guids:");
 	let mut offset = &mut 0usize;
 	for g in data.chunks(16) {
 		let data1: u32 = g.read(offset)?;
@@ -24,7 +26,7 @@ pub fn dump_guids(data: &[u8]) -> Result<()> {
 		*offset += 8;
 		println!("}}");
 	}
-	println!("Total: {} guid(s).", data.len() >> 4);
+	debug!("Total: {} guid(s).", data.len() >> 4);
 
 	Ok(())
 }
