@@ -147,7 +147,17 @@ impl Header {
 	}
 }
 
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Metadata {
 	
+}
+
+impl Metadata {
+	pub fn parse(data: &[u8]) -> Result<Metadata> {
+		Ok(Metadata {})
+	}
+}
+
 	// // TODO(dmi): @cleanup This copy-pasta should be factored out.
 	// let mut metadata_offset = None;
 	// let mut s: usize = 0;

@@ -45,8 +45,15 @@ fn main() -> Result<()> {
 
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
 	let cli_header = cli::Header::parse(cli, &pe_header)?;
-
 	trace!("{:#?}", cli_header);
+
+	let metadata_offset = pe_header.rva2offset(cli_header.metadata_rva as usize).ok_or("Failed to convert CLI metadata RVA.")?;
+	if metadata_offset >= data.len() {
+		Err("CLI metadata RVA is wrong.")?;
+	}
+
+	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
+	dump(metadata, 64);
 	
 	Ok(())
 }
