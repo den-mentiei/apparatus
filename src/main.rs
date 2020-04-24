@@ -56,6 +56,10 @@ fn main() -> Result<()> {
 	let cli_metadata = cli::Metadata::parse(metadata)?;
 	// trace!("{:#?}", cli_metadata);
 
+	if let Some(guids) = cli_metadata.guids {
+		cli::dump_guids(guids);
+	}
+
 	if let Some(logical_tables) = cli_metadata.logical_tables {
 		trace!("Parsing logical tables...");
 		let tables = cli::Tables::parse(logical_tables)?;

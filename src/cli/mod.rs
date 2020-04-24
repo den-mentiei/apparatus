@@ -4,6 +4,9 @@ pub use self::header::*;
 mod logical_tables;
 pub use self::logical_tables::*;
 
+mod guids;
+pub use self::guids::*;
+
 // macro_rules! max {
 // 	($x:expr) => ($x);
 // 	($x:expr, $($xs:expr),+) => {
@@ -1149,26 +1152,4 @@ pub use self::logical_tables::*;
 // 	}
 
 // 	Err("Incorrect blob length.")?
-// }
-
-// fn read_guids(data: &[u8]) -> Result<()> {
-// 	if data.len() & 15 !=0 {
-// 		Err("Invalid #GUID heap size.")?;
-// 	}
-
-// 	for g in data.chunks(16) {
-// 		let data1 = g[0..].read_u32()?;
-// 		let data2 = g[4..].read_u16()?;
-// 		let data3 = g[6..].read_u16()?;
-
-// 		print!("  {{{:08X}-{:04X}-{:04X}-", data1, data2, data3);
-// 		for x in &g[8..] {
-// 			print!("{:02X}", x)
-// 		}
-// 		println!("}}");
-// 	}
-	
-// 	println!("  {} guid(s).", data.len() >> 4);
-
-// 	Ok(())
 // }

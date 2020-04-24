@@ -5,7 +5,7 @@ use log::{trace};
 use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
-use crate::utils::{align_up, dump, os_is_64};
+use crate::utils::{align_up, os_is_64};
 
 // Taken from ECMA II.25.3.3.1
 
