@@ -15,7 +15,7 @@ mod utils;
 
 use std::path::Path;
 
-use log::{info, trace};
+use log::{trace, debug, info};
 
 use buf::Reading;
 use error::Result;
@@ -36,7 +36,7 @@ fn main() -> Result<()> {
 	info!("Subject size: {} bytes.", data.len());
 
 	let pe_header = Header::parse(data)?;
-	// trace!("{:#?}", pe_header);
+	// debug!("{:#?}", pe_header);
 
 	let cli_offset = pe_header.rva2offset(pe_header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
 	if cli_offset >= data.len() {
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
 
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
 	let cli_header = cli::Header::parse(cli, &pe_header)?;
-	// trace!("{:#?}", cli_header);
+	// debug!("{:#?}", cli_header);
 
 	let metadata_offset = pe_header.rva2offset(cli_header.metadata_rva as usize).ok_or("Failed to convert CLI metadata RVA.")?;
 	if metadata_offset >= data.len() {
@@ -54,13 +54,16 @@ fn main() -> Result<()> {
 
 	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
 	let cli_metadata = cli::Metadata::parse(metadata)?;
-	// trace!("{:#?}", cli_metadata);
+	// debug!("{:#?}", cli_metadata);
 
 	if let Some(guids) = cli_metadata.guids {
 		cli::dump_guids(guids)?;
 	}
 	if let Some(strings) = cli_metadata.strings {
 		cli::debug_strings(strings)?;
+	}
+	if let Some(user_strings) = cli_metadata.user_strings {
+		cli::debug_user_strings(user_strings)?;
 	}
 
 	if let Some(logical_tables) = cli_metadata.logical_tables {

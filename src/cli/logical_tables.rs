@@ -1,4 +1,4 @@
-use log::{trace};
+use log::{debug};
 
 use crate::Result;
 use crate::error::Error;
@@ -69,7 +69,7 @@ impl Tables {
 		// HeapSize bit for a particular heap is not set, indexes into
 		// that heap are 2 bytes wide.
 		let heap_sizes: u8 = data.read(offset)?;
-		trace!("Heap sizes: {:#010b}", heap_sizes);
+		debug!("Heap sizes: {:#010b}", heap_sizes);
 
 		let string_index_bytes: usize = if heap_sizes & 0x01 == 0 { 2 } else { 4 };
 		let guid_index_bytes:   usize = if heap_sizes & 0x02 == 0 { 2 } else { 4 };
@@ -83,7 +83,7 @@ impl Tables {
 		// tables to indexes is given at the start of II.22.
 		let valid_mask: u64 = data.read(offset)?;
 		let n = valid_mask.count_ones() as usize;
-		trace!("Valid mask: {:#066b} -> {} table(s).", valid_mask, n);
+		debug!("Valid mask: {:#066b} -> {} table(s).", valid_mask, n);
 
 		// Sorted.
 		*offset += 8;
@@ -92,7 +92,7 @@ impl Tables {
 		for i in 0..lens.len() {
 			if (valid_mask >> i) & 1 == 1 {
 				lens[i] = data.read(offset)?;
-				trace!("Table #{} has {:#0x} item(s).", i, lens[i]);
+				debug!("Table #{} has {:#0x} item(s).", i, lens[i]);
 			}
 		}
 		

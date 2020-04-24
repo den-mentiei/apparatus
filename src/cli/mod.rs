@@ -10,6 +10,9 @@ pub use self::guids::*;
 mod strings;
 pub use self::strings::*;
 
+mod user_strings;
+pub use self::user_strings::*;
+
 // macro_rules! max {
 // 	($x:expr) => ($x);
 // 	($x:expr, $($xs:expr),+) => {
@@ -1072,9 +1075,6 @@ pub use self::strings::*;
 
 // 	fn size_for_big_index(n: usize) -> usize { 1 << (16 - log2(n)) }
 // 	fn log2(x: usize) -> usize { if x == 0 { 0 } else { 64usize - x.leading_zeros() as usize } }
-// }
-
-// fn read_strings(data: &[u8]) -> Result<()> {
 // }
 
 // fn read_user_strings(data: &[u8]) -> Result<()> {

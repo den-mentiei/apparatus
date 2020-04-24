@@ -1,6 +1,6 @@
 use std::str;
 
-use log::{trace};
+use log::{debug};
 
 use crate::Result;
 use crate::error::Error;
@@ -49,11 +49,11 @@ impl Header {
 		// Offsets are defined in ECMA II.25.3.3.
 		let rt_major: u16 = data.read(offset)?;
 		let rt_minor: u16 = data.read(offset)?;
-		trace!("CLI runtime: {}.{}", rt_major, rt_minor);
+		debug!("CLI runtime: {}.{}", rt_major, rt_minor);
 
 		let metadata_rva  = data.read(offset)?;
 		let metadata_size = data.read(offset)?;
-		trace!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
+		debug!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
 
 		Header::check_flags(data, offset)?;
 
@@ -136,12 +136,12 @@ impl<'a> Metadata<'a> {
 		
 		let version = str::from_utf8(&data[16..(16 + len_version as usize)])
 			.map_err(|_| Error::General("Version string is not a valid utf-8 string."))?;
-		trace!("Version: {}", version);
+		debug!("Version: {}", version);
 
 		*offset += align_up(len_version as usize, 4) + 2;
 
 		let n_streams: u16 = data.read(offset)?;
-		trace!("Metadata streams: {}", n_streams);
+		debug!("Metadata streams: {}", n_streams);
 
 		let mut logical_tables = None;
 		let mut strings =        None;
@@ -169,7 +169,7 @@ impl<'a> Metadata<'a> {
 			let name = str::from_utf8(&name[..len - 1])
 				.map_err(|_| Error::General("Metadata stream name is not a valid utf-8 string."))?;
 
-			trace!("Found stream: `{}` at {:#0x}, {:#0x} byte(s).", name, s_offset, s_size);
+			debug!("Found stream: `{}` at {:#0x}, {:#0x} byte(s).", name, s_offset, s_size);
 
 			let stream_data = &data[s_offset..s_offset + s_size];
 			
