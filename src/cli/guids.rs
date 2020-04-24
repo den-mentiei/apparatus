@@ -7,8 +7,10 @@ pub fn dump_guids(data: &[u8]) -> Result<()> {
 		Err("Invalid #GUID heap size.")?;
 	}
 
-	println!("Found {} guid(s):", data.len() >> 4);
-
+	// TODO(dmi): @shortcut It should use debug! and only
+	// format guids if debug log levle is enabled.
+	
+	println!("Available guids:");
 	let mut offset = &mut 0usize;
 	for g in data.chunks(16) {
 		let data1: u32 = g.read(offset)?;
@@ -22,6 +24,7 @@ pub fn dump_guids(data: &[u8]) -> Result<()> {
 		*offset += 8;
 		println!("}}");
 	}
+	println!("Total: {} guid(s).", data.len() >> 4);
 
 	Ok(())
 }

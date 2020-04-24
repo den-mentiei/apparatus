@@ -7,6 +7,9 @@ pub use self::logical_tables::*;
 mod guids;
 pub use self::guids::*;
 
+mod strings;
+pub use self::strings::*;
+
 // macro_rules! max {
 // 	($x:expr) => ($x);
 // 	($x:expr, $($xs:expr),+) => {
@@ -1072,21 +1075,6 @@ pub use self::guids::*;
 // }
 
 // fn read_strings(data: &[u8]) -> Result<()> {
-// 	debug_assert!(data.len() >= 1);
-// 	debug_assert!(data[0] == 0);
-
-// 	let mut n: usize = 0;
-// 	for s in data[1..].split(|c| *c == 0) {
-// 		n += 1;
-
-// 		// let s = std::str::from_utf8(s)?;
-// 		// if s.len() > 0 {
-// 		// 	println!("  `{}`", s);
-// 		// }
-// 	}
-// 	println!("  {} string(s).", n);
-
-// 	Ok(())
 // }
 
 // fn read_user_strings(data: &[u8]) -> Result<()> {

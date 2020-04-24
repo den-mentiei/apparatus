@@ -57,7 +57,10 @@ fn main() -> Result<()> {
 	// trace!("{:#?}", cli_metadata);
 
 	if let Some(guids) = cli_metadata.guids {
-		cli::dump_guids(guids);
+		cli::dump_guids(guids)?;
+	}
+	if let Some(strings) = cli_metadata.strings {
+		cli::debug_strings(strings)?;
 	}
 
 	if let Some(logical_tables) = cli_metadata.logical_tables {
