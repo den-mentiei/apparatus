@@ -71,13 +71,12 @@ const METADATA_GENERICPARAMCONSTRAINT: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Header {
-
+	pub metadata_rva:  u32,
+	pub metadata_size: u32,
 }
 
 impl Header {
 	pub fn parse(data: &[u8], pe: &crate::pe::Header) -> Result<Header> {
-		dump(data, 64);
-
 		let mut offset = &mut 0usize;
 		
 		let size: u32 = data.read(offset)?;
@@ -90,13 +89,13 @@ impl Header {
 		let rt_minor: u16 = data.read(offset)?;
 		trace!("CLI runtime: {}.{}", rt_major, rt_minor);
 
-		Ok(Header {})
+		let metadata_rva  = data.read(offset)?;
+		let metadata_size = data.read(offset)?;
+		trace!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
+
+		Ok(Header { metadata_rva, metadata_size })
 	}
 }
-
-	// let metadata_rva  = cli_header[8..].read_u32()? as usize;
-	// let metadata_size = cli_header[12..].read_u32()? as usize;
-	// println!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
 
 	// let flags = cli_header[16..].read_u32()?;
 	// if flags & COMIMAGE_FLAGS_ILONLY == 0 {
