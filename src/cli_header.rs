@@ -1,3 +1,9 @@
+use log::{trace};
+
+use crate::Result;
+use crate::buf::Reading;
+use crate::utils::{dump};
+
 // Taken from ECMA II.25.3.3.1
 
 // Shall be one.
@@ -63,10 +69,24 @@ const METADATA_GENERICPARAM:           usize = 0x2A;
 const METADATA_METHODSPEC:             usize = 0x2B;
 const METADATA_GENERICPARAMCONSTRAINT: usize = 0x2C;
 
-	// let size = cli_header.read_u32()? as usize;
-	// if cli_header_size != size {
-	// 	Err("CLI header specifies wrong size.")?;
-	// }
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct Header {
+
+}
+
+pub fn parse(data: &[u8], pe: &crate::pe::Header) -> Result<Header> {
+	dump(data, 64);
+
+	let mut offset = &mut 0usize;
+	
+	let size: u32 = data.read(offset)?;
+	if size != pe.cli_size {
+		Err("CLI header specifies wrong size.")?;
+	}
+
+	Ok(Header {})
+}
+
 
 	// // Offsets are defined in ECMA II.25.3.3.
 	// let rt_major = cli_header[4..].read_u16()?;

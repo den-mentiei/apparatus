@@ -35,15 +35,17 @@ fn main() -> Result<()> {
 	let data = &*read_whole_file(Path::new(SUBJECT))?;
 	info!("Subject size: {} bytes.", data.len());
 
-	let header = Header::parse(data)?;
+	let pe_header = Header::parse(data)?;
 
-	let cli_offset = header.rva2offset(header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
+	let cli_offset = pe_header.rva2offset(pe_header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
 	if cli_offset >= data.len() {
 		Err("CLI header RVA is wrong.")?;
 	}
 
-	let cli = &data[cli_offset..cli_offset + header.cli_size as usize];
-	dump(cli, 64);
+	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
+	let cli_header = cli_header::parse(cli, &pe_header)?;
+
+	trace!("{:?}", cli_header);
 	
 	Ok(())
 }
