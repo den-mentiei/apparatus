@@ -153,10 +153,10 @@ impl Header {
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Metadata<'a> {
 	logical_tables: Option<&'a [u8]>,
-	strings:        Option< &'a [u8]>,
-	user_strings:   Option<  &'a [u8]>,
-	blobs:          Option< &'a [u8]>,
-	guids:          Option<  &'a [u8]>,
+	strings:        Option<&'a [u8]>,
+	user_strings:   Option<&'a [u8]>,
+	blobs:          Option<&'a [u8]>,
+	guids:          Option<&'a [u8]>,
 }
 
 impl<'a> Metadata<'a> {
@@ -184,46 +184,46 @@ impl<'a> Metadata<'a> {
 		let n_streams: u16 = data.read(offset)?;
 		trace!("Metadata streams: {}", n_streams);
 
-		Ok(Metadata::default())
+		let mut logical_tables = None;
+		let mut strings =        None;
+		let mut user_strings =   None;
+		let mut blobs =          None;
+		let mut guids =          None;
+
+		for i in 0..n_streams {
+			let s_offset: u32 = data.read(offset)?;
+			let s_size:   u32 = data.read(offset)?;
+
+			let name = &data[*offset..];
+			let mut len = 0;
+			
+			for j in 0..METADATA_STREAM_NAME_MAX_LEN {
+				len += 1;
+				if name[j] == 0 {
+					break;
+				}
+			}
+			if len > METADATA_STREAM_NAME_MAX_LEN {
+				Err("Metadata stream name length is invalid.")?;
+			}
+
+			let name = str::from_utf8(&name[..len - 1])
+				.map_err(|_| Error::General("Metadata stream name is not a valid utf-8 string."))?;
+
+			trace!("Found stream: `{}` at {:#0x}, {:#0x} byte(s).", name, s_offset, s_size);
+
+			*offset += align_up(len, 4);
+		}
+		
+		Ok(Metadata {
+			logical_tables,
+			strings,
+			user_strings,
+			blobs,
+			guids,
+		})
 	}
 }
-
-	// let streams = &metadata[(offset + 4)..];
-
-	// let mut s: usize = 0;
-	// for i in 0..n_streams {
-	// 	let header = &streams[s..];
-		
-	// 	let offset = header[0..].read_u32()? as usize;
-	// 	let size   = header[4..].read_u32()? as usize;
-
-	// 	let name = &header[8..];
-	// 	let mut len: usize = 0;
-	// 	for j in 0..METADATA_STREAM_NAME_MAX_LEN {
-	// 		len += 1;
-	// 		if name[j] == 0 {
-	// 			break;
-	// 		}
-	// 	}
-	// 	if len > METADATA_STREAM_NAME_MAX_LEN {
-	// 		Err("Metadata stream name lenght is invalid.")?;
-	// 	}
-
-	// 	let name = std::str::from_utf8(&name[..len - 1])?;
-	// 	println!("Stream #{}: `{}`, at {:#0x}, {:#0x} bytes.", i, name, offset, size);
-
-	// 	let data = &metadata[offset..offset + size];
-	// 	match name {
-	// 		"#~" => read_logical_tables(data)?,
-	// 		"#Strings" => read_strings(data)?,
-	// 		"#US" => read_user_strings(data)?,
-	// 		"#Blob" => read_blobs(data)?,
-	// 		"#GUID" => read_guids(data)?,
-	// 		_ => println!("^ unknown table!"),
-	// 	}
-		
-	// 	s += 8 + align_up(len, 4);
-	// }
 
 // macro_rules! max {
 // 	($x:expr) => ($x);
