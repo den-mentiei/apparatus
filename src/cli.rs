@@ -2,7 +2,7 @@ use log::{trace};
 
 use crate::Result;
 use crate::buf::Reading;
-use crate::utils::{dump};
+use crate::utils::{dump, os_is_64};
 
 // Taken from ECMA II.25.3.3.1
 
@@ -93,48 +93,60 @@ impl Header {
 		let metadata_size = data.read(offset)?;
 		trace!("CLI physical metadata: {:#0x}, {:#0x} bytes.", metadata_rva, metadata_size);
 
+		Header::check_flags(data, offset)?;
+
+		let ep_token: u32 = data.read(offset)?;
+
+		Header::check_fields(data, offset)?;
+
 		Ok(Header { metadata_rva, metadata_size })
+	}
+
+	fn check_flags(data: &[u8], offset: &mut usize) -> Result<()> {
+		let flags: u32 = data.read(offset)?;
+		if flags & COMIMAGE_FLAGS_ILONLY == 0 {
+			Err("Assembly contains not only IL.")?;
+		}
+		if (flags & COMIMAGE_FLAGS_32BITREQUIRED != 0) && os_is_64() {
+			Err("Assembly can be loaded only in 32-bit process.")?;
+		}
+		if flags & COMIMAGE_FLAGS_STRONGNAMESIGNED != 0 {
+			println!("Assembly has a strong name signature.");
+		}
+		if flags & COMIMAGE_FLAGS_NATIVE_ENTRYPOINT != 0 {
+			Err("Assembly has native entry-point.")?;
+		}
+		if flags & COMIMAGE_FLAGS_TRACKDEBUGDATA != 0 {
+			Err("Assembly requires debug data tracking.")?;
+		}
+		Ok(())
+	}
+
+	fn check_fields(data: &[u8], offset: &mut usize) -> Result<()> {
+		let cm_table: u64 = data.read(offset)?;
+		if cm_table != 0 {
+			Err("Assembly has code manager table.")?;
+		}
+
+		let vtable_fixups: u64 = data.read(offset)?;
+		if vtable_fixups != 0 {
+			Err("Assembly has VTable fixups.")?;
+		}
+
+		let eat_jumps: u64 = data.read(offset)?;
+		if eat_jumps != 0 {
+			Err("Assembly has export address table jumps.")?;
+		}
+
+		let managed_native_header: u64 = data.read(offset)?;
+		if managed_native_header != 0 {
+			Err("Assembly has managed native header.")?;
+		}
+
+		Ok(())
 	}
 }
 
-	// let flags = cli_header[16..].read_u32()?;
-	// if flags & COMIMAGE_FLAGS_ILONLY == 0 {
-	// 	Err("Assembly contains not only IL.")?;
-	// }
-	// if (flags & COMIMAGE_FLAGS_32BITREQUIRED != 0) && os_is_64() {
-	// 	Err("Assembly can be loaded only in 32-bit process.")?;
-	// }
-	// if flags & COMIMAGE_FLAGS_STRONGNAMESIGNED != 0 {
-	// 	println!("Assembly has a strong name signature.");
-	// }
-	// if flags & COMIMAGE_FLAGS_NATIVE_ENTRYPOINT != 0 {
-	// 	Err("Assembly has native entry-point.")?;
-	// }
-	// if flags & COMIMAGE_FLAGS_TRACKDEBUGDATA != 0 {
-	// 	Err("Assembly requires debug data tracking.")?;
-	// }
-
-	// let ep_token = cli_header[20..].read_u32()?;
-
-	// let cm_table = cli_header[40..].read_u64()?;
-	// if cm_table != 0 {
-	// 	Err("Assembly has code manager table.")?;
-	// }
-
-	// let vtable_fixups = cli_header[48..].read_u64()?;
-	// if vtable_fixups != 0 {
-	// 	Err("Assembly has VTable fixups.")?;
-	// }
-
-	// let eat_jumps = cli_header[56..].read_u64()?;
-	// if eat_jumps != 0 {
-	// 	Err("Assembly has export address table jumps.")?;
-	// }
-	
-	// let managed_native_header = cli_header[64..].read_u64()?;
-	// if managed_native_header != 0 {
-	// 	Err("Assembly has managed native header.")?;
-	// }
 	
 	// // TODO(dmi): @cleanup This copy-pasta should be factored out.
 	// let mut metadata_offset = None;
