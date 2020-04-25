@@ -173,23 +173,149 @@ impl GuidIndex {
 	}
 }
 
+// II 24.2.6
+
+/// 2 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum TypeDefOrRef {
+	TypeDef(u32),
+	TypeRef(u32),
+	TypeSpec(u32),
+}
+
+/// 2 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HasConstant {
+	Field(u32),
+	Param(u32),
+	Property(u32),
+}
+
+/// 5 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HasCustomAttribute {
+	MethodDef(u32),
+	Field(u32),
+	TypeRef(u32),
+	TypeDef(u32),
+	Param(u32),
+	InterfaceImpl(u32),
+	MemberRef(u32),
+	Module(u32),
+	Permission(u32),
+	Property(u32),
+	Event(u32),
+	StandAloneSig(u32),
+	ModuleRef(u32),
+	TypeSpec(u32),
+	Assembly(u32),
+	AssemblyRef(u32),
+	File(u32),
+	ExportedType(u32),
+	ManifestResource(u32),
+	GenericParam(u32),
+	GenericParamConstraint(u32),
+	MethodSpec(u32),
+}
+
+/// 1 bit to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HasFieldMarshall {
+	Field(u32),
+	Param(u32),
+}
+
+/// 2 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HasDeclSecurity {
+	TypeDef(u32),
+	MethodDef(u32),
+	Assembly(u32),
+}
+
+/// 3 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum MemberRefParent {
+	TypeDef(u32),
+	TypeRef(u32),
+	ModuleRef(u32),
+	MethodDef(u32),
+	TypeSpec(u32),
+}
+
+/// 1 bit to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HasSemantics {
+	Event(u32),
+	Property(u32),
+}
+
+/// 1 bit to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum MethodDefOrRef {
+	MethodDef(u32),
+	MemberRef(u32),
+}
+
+/// 1 bit to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum MemberForwarded {
+	Field(u32),
+	MethodDef(u32),
+}
+
+/// 2 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum Implementation {
+	File(u32),
+	AssemblyRef(u32),
+	ExportedType(u32),
+}
+
+/// 3 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum CustomAttributeType {
+	/// Tag 2.
+	MethodDef(u32),
+	/// Tag 3.
+	MemberRef(u32),
+}
+
+/// 2 bits to encode tag.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum ResolutionScope {
+	Module(u32),
+	ModuleRef(u32),
+	AssemblyRef(u32),
+	TypeRef(u32),
+}
+
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct TableRows {
 	modules: Box<[Module]>,
+	type_refs: Box<[TypeRef]>,
 }
 
 impl TableRows {
 	pub fn parse(header: &Tables, data: &[u8]) -> Result<Self> {
 		let mut offset = &mut 0;
-		
-		let modules = if header.has_table(METADATA_MODULE) {
-			Module::parse_many(header, data, offset)?
-		} else {
-			empty()
-		};
+
+		macro_rules! table {
+			($table:ident, $id:ident, $type:ty) => {
+				let $table = if header.has_table($id) {
+					<$type>::parse_many(header, data, offset)?
+				} else {
+					empty()
+				};
+			};
+		}
+
+		table!(modules,   METADATA_MODULE,   Module);
+		table!(type_refs, METADATA_TYPE_REF, TypeRef);
 		
 		Ok(TableRows {
 			modules,
+			type_refs,
 		})
 	}
 }
@@ -228,6 +354,30 @@ impl Module {
 			}
 
 			result.push(Module { name, mvid })
+		}
+
+		Ok(result.into_boxed_slice())
+	}
+}
+
+/// II.24.2.6
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct TypeRef {
+	pub name: StringIndex,
+	pub namespace: StringIndex,
+}
+
+impl TypeRef {
+	fn parse_many(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Box<[TypeRef]>> {
+		let n = header.lens[METADATA_TYPE_REF] as usize;
+		let mut result = Vec::with_capacity(n);
+
+		for i in 0..n {
+			
+			let name = StringIndex::read(header, data, offset)?;
+			let namespace = StringIndex::read(header, data, offset)?;
+
+			result.push(TypeRef { name, namespace })
 		}
 
 		Ok(result.into_boxed_slice())
