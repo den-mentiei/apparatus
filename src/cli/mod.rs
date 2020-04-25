@@ -25,37 +25,6 @@ pub use self::user_strings::*;
 
 // II.24.2.6
 // fn read_logical_tables(data: &[u8]) -> Result<()> {
-// 	let tables   = &data[24 + n * 4..];
-	
-// 	// METADATA_MODULE II.22.30
-// 	if (valid_mask >> METADATA_MODULE) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("Module table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* Module #{}", i);
-			
-// 			let generation = data[offset..].read_u16()?;
-// 			if generation != 0 {
-// 				Err("Module has invalid generation.")?;
-// 			}
-// 			offset += 2;
-
-// 			let name_si = read_idx(data, offset, si_size)?;
-// 			offset += si_size;
-// 			let mvid_gi = read_idx(data, offset, gi_size)?;
-// 			offset += gi_size;
-
-// 			// EncId & EncBaseId.
-// 			offset += gi_size * 2;
-
-// 			println!("  name index: {:#0x}", name_si);
-// 			println!("  mvid index: {:#0x}", mvid_gi);
-// 		}
-		
-// 		t += 1;
-// 	}
-
 // 	// METADATA_TYPEREF II.22.30
 // 	if (valid_mask >> METADATA_TYPEREF) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
