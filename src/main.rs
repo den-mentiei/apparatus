@@ -57,18 +57,21 @@ fn main() -> Result<()> {
 	// debug!("{:#?}", cli_metadata);
 
 	if let Some(guids) = cli_metadata.guids {
-		cli::dump_guids(guids)?;
+		// cli::dump_guids(guids)?;
 	}
 	if let Some(strings) = cli_metadata.strings {
-		cli::debug_strings(strings)?;
+		// cli::debug_strings(strings)?;
 	}
 	if let Some(user_strings) = cli_metadata.user_strings {
-		cli::debug_user_strings(user_strings)?;
+		// cli::debug_user_strings(user_strings)?;
 	}
 
 	if let Some(logical_tables) = cli_metadata.logical_tables {
 		trace!("Parsing logical tables...");
-		let tables = cli::Tables::parse(logical_tables)?;
+		let header = cli::Tables::parse(logical_tables)?;
+		let rows = &logical_tables[header.size..];
+		let rows = cli::TableRows::parse(&header, rows)?;
+		debug!("{:#?}", rows);
 	}
 	
 	Ok(())
