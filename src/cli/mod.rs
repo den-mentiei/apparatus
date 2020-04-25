@@ -13,63 +13,8 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// macro_rules! max {
-// 	($x:expr) => ($x);
-// 	($x:expr, $($xs:expr),+) => {
-// 		{
-// 			use std::cmp::max;
-// 			max($x, max!($($xs),+))
-// 		}
-// 	};
-// }
-
 // II.24.2.6
 // fn read_logical_tables(data: &[u8]) -> Result<()> {
-// 	// METADATA_TYPEREF II.22.30
-// 	if (valid_mask >> METADATA_TYPEREF) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("TypeRef table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* TypeRef #{}", i);
-
-// 			// II.24.2.6:
-// 			const TAG_MASK: usize = 0b11;
-// 			const RESOLUTION_SCOPE_MODULE:       usize = 0;
-// 			const RESOLUTION_SCOPE_MODULE_REF:   usize = 1;
-// 			const RESOLUTION_SCOPE_ASSEMBLY_REF: usize = 2;
-// 			const RESOLUTION_SCOPE_TYPE_REF:     usize = 3;
-			
-// 			let max_len = max!(
-// 				table_lens[METADATA_MODULE],
-// 				table_lens[METADATA_MODULEREF],
-// 				table_lens[METADATA_ASSEMBLYREF],
-// 				table_lens[METADATA_TYPEREF]) as usize;
-// 			let size  = if max_len < size_for_big_index(4) { 2 } else { 4 };
-// 			let shift = log2(TAG_MASK);
-
-// 			let scope = read_idx(data, offset, size)?;
-// 			offset += size;
-// 			let type_name_si = read_idx(data, offset, si_size)?;
-// 			offset += si_size;
-// 			let type_namespace_si = read_idx(data, offset, si_size)?;
-// 			offset += si_size;
-
-// 			print!("-> ");
-// 			match scope & TAG_MASK {
-// 				RESOLUTION_SCOPE_MODULE => print!("Module"),
-// 				RESOLUTION_SCOPE_MODULE_REF => print!("ModuleRef"),
-// 				RESOLUTION_SCOPE_ASSEMBLY_REF => print!("AssemblyRef"),
-// 				RESOLUTION_SCOPE_TYPE_REF => print!("TypeRef"),
-// 				_ => Err("Invalid ResolutionScope tag.")?,
-// 			};
-// 			print!(" {:#0x}, ", scope >> shift);
-// 			println!("  name index: {:#0x}, namespace index: {:#0x}", type_name_si, type_namespace_si);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_TYPEDEF II.22.37
 // 	if (valid_mask >> METADATA_TYPEDEF) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

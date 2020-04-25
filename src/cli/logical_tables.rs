@@ -154,7 +154,7 @@ pub struct StringIndex(u32);
 pub struct GuidIndex(u32);
 
 impl StringIndex {
-	fn read(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let i = match header.string_index_size {
 			IndexSize::U16 => StringIndex(data.read::<u16>(offset)? as u32),
 			IndexSize::U32 => StringIndex(data.read::<u32>(offset)? as u32),
@@ -164,7 +164,7 @@ impl StringIndex {
 }
 
 impl GuidIndex {
-	fn read(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let i = match header.guid_index_size {
 			IndexSize::U16 => GuidIndex(data.read::<u16>(offset)? as u32),
 			IndexSize::U32 => GuidIndex(data.read::<u32>(offset)? as u32),
@@ -173,15 +173,63 @@ impl GuidIndex {
 	}
 }
 
+macro_rules! max {
+	($x:expr) => ($x);
+	($x:expr, $($xs:expr),+) => {
+		{
+			use std::cmp::max;
+			max($x, max!($($xs),+))
+		}
+	};
+}
+
+macro_rules! count_tts {
+    () => {0usize};
+    ($_head:tt $($tail:tt)*) => {1usize + count_tts!($($tail)*)};
+}
+
+const fn size_for_big_index(n: usize) -> usize { 1 << (16 - log2(n)) }
+const fn log2(x: usize) -> usize { 64usize - x.leading_zeros() as usize }
+
+macro_rules! coded_index {
+	($name:ident, $bits:expr, $(($v:ident $t:expr, $id:ident))+) => {
+		#[derive(Debug, PartialEq, Copy, Clone)]
+		pub enum $name {
+			$($v(u32),)+
+		}
+
+		impl $name {
+			fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<$name> {
+				const COUNT: usize = count_tts!($($v),+);
+				let max_len = max!($(header.lens[$id]),+) as usize;
+				let value = if max_len < size_for_big_index(COUNT) {
+					data.read::<u16>(offset)? as u32
+				} else {
+					data.read::<u32>(offset)?
+				};
+
+				let tag = value & (1 << $bits) - 1;
+				let idx = value >> $bits;
+				
+				let r = match tag {
+					$(
+						$t => $name::$v(idx),
+					)+
+					_ => Err("Unknown coded index tag.")?,
+				};
+
+				Ok(r)
+			}
+		}
+	};
+}
+
 // II 24.2.6
 
-/// 2 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum TypeDefOrRef {
-	TypeDef(u32),
-	TypeRef(u32),
-	TypeSpec(u32),
-}
+coded_index!(TypeDefOrRef, 2,
+			 (TypeDef  0, METADATA_TYPE_DEF)
+			 (TypeRef  1, METADATA_TYPE_REF)
+			 (TypeSpec 2, METADATA_TYPE_SPEC));
 
 /// 2 bits to encode tag.
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -281,14 +329,11 @@ pub enum CustomAttributeType {
 	MemberRef(u32),
 }
 
-/// 2 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum ResolutionScope {
-	Module(u32),
-	ModuleRef(u32),
-	AssemblyRef(u32),
-	TypeRef(u32),
-}
+coded_index!(ResolutionScope, 2,
+	(Module      0, METADATA_MODULE)
+	(ModuleRef   1, METADATA_MODULE_REF)
+	(AssemblyRef 2, METADATA_ASSEMBLY_REF)
+	(TypeRef     3, METADATA_TYPE_REF));
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct TableRows {
@@ -321,7 +366,7 @@ impl TableRows {
 }
 
 /// II.22.30
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Module {
 	/// Module name.
 	pub name: StringIndex,
@@ -341,8 +386,8 @@ impl Module {
 				Err("Module has invalid generation.")?;
 			}
 
-			let name = StringIndex::read(header, data, offset)?;
-			let mvid = GuidIndex::read(header, data, offset)?;
+			let name = StringIndex::parse(header, data, offset)?;
+			let mvid = GuidIndex::parse(header, data, offset)?;
 
 			let enc_id: u16 = data.read(offset)?;
 			if enc_id != 0 {
@@ -361,8 +406,9 @@ impl Module {
 }
 
 /// II.24.2.6
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TypeRef {
+	pub scope: ResolutionScope,
 	pub name: StringIndex,
 	pub namespace: StringIndex,
 }
@@ -373,11 +419,11 @@ impl TypeRef {
 		let mut result = Vec::with_capacity(n);
 
 		for i in 0..n {
-			
-			let name = StringIndex::read(header, data, offset)?;
-			let namespace = StringIndex::read(header, data, offset)?;
+			let scope = ResolutionScope::parse(header, data, offset)?;
+			let name = StringIndex::parse(header, data, offset)?;
+			let namespace = StringIndex::parse(header, data, offset)?;
 
-			result.push(TypeRef { name, namespace })
+			result.push(TypeRef { scope, name, namespace })
 		}
 
 		Ok(result.into_boxed_slice())
