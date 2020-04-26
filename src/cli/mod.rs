@@ -13,63 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_MEMBERREF II 22.25
-// 	// An entry is made into the MemberRef table whenever a reference
-// 	// is made in the CIL code to a method or field which is defined
-// 	// in another module or assembly.
-// 	// (Also, an entry is made for a call to a method with a VARARG
-// 	// signature, even when it is defined in the same module as the
-// 	// call site.)
-// 	if (valid_mask >> METADATA_MEMBERREF) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("MemberRef table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* MemberRef #{}", i);
-
-// 			// II.24.2.6
-// 			const TAG_MASK:  usize = 0b111;
-// 			const TYPEDEF:   usize = 0;
-// 			const TYPEREF:   usize = 1;
-// 			const MODULEREF: usize = 2;
-// 			const METHODDEF: usize = 3;
-// 			const TYPESPEC:  usize = 4;
-
-// 			let max_len = max!(
-// 				table_lens[METADATA_TYPEDEF],
-// 				table_lens[METADATA_TYPEREF],
-// 				table_lens[METADATA_MODULEREF],
-// 				table_lens[METADATA_METHODDEF],
-// 				table_lens[METADATA_TYPESPEC]) as usize;
-// 			let size  = if max_len < size_for_big_index(5) { 2 } else { 4 };
-// 			let shift = log2(TAG_MASK);
-
-// 			let class = read_idx(data, offset, size)?;
-// 			offset += size;
-
-// 			print!("  class ");
-// 			match class & TAG_MASK {
-// 				TYPEDEF   => print!("TypeDef"),
-// 				TYPEREF   => print!("TypeRef"),
-// 				MODULEREF => print!("ModuleRef"),
-// 				METHODDEF => print!("MethodDef"),
-// 				TYPESPEC  => print!("TypeSpec"),
-// 				_ => Err("Invalid MemberRefParent tag.")?,
-// 			};
-// 			println!(" {:#0x}", class >> shift);
-
-// 			let name_si = read_idx(data, offset, si_size)?;
-// 			offset += si_size;
-// 			println!("  name index: {:#0x}", name_si);
-
-// 			let signature_bi = read_idx(data, offset, bi_size)?;
-// 			offset += bi_size;
-// 			println!("  signature index: {:#0x}", signature_bi);
-// 		}
-
-// 		t += 1;
-// 	}
-	
 // 	// METADATA_CONSTANT II.22.9
 // 	if (valid_mask >> METADATA_CONSTANT) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

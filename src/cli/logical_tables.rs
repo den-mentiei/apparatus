@@ -169,6 +169,12 @@ pub struct TableRows {
 	params: Box<[Param]>,
 	/// Records the interfaces a type implements explicitly.
 	interface_impls: Box<[InterfaceImpl]>,
+	/// An entry is made into the MemberRef table whenever a reference is
+	/// made in the CIL code to a method or field which is defined in another
+	/// module or assembly. (Also, an entry is made for a call to a method
+	/// with a VARARG signature, even when it is defined in the same module as
+	/// the call site.)
+	member_refs: Box<[MemberRef]>,
 }
 
 impl TableRows {
@@ -199,6 +205,7 @@ impl TableRows {
 		table!(method_defs,     METADATA_METHOD_DEF,     MethodDef);
 		table!(params,          METADATA_PARAM,          Param);
 		table!(interface_impls, METADATA_INTERFACE_IMPL, InterfaceImpl);
+		table!(member_refs,     METADATA_MEMBER_REF,     MemberRef);
 		
 		Ok(TableRows {
 			modules,
@@ -208,6 +215,7 @@ impl TableRows {
 			method_defs,
 			params,
 			interface_impls,
+			member_refs,
 		})
 	}
 }
@@ -499,15 +507,15 @@ pub struct Field {
 	// TODO(dmi): @incomplete See FieldAttributes II.23.1.5
 	flags: u16,
 	pub name: StringIndex,
-	pub signature: BlobIndex,
+	pub sig: BlobIndex,
 }
 
 impl Field {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let flags: u16 = data.read(offset)?;
 		let name = StringIndex::parse(header, data, offset)?;
-		let signature = BlobIndex::parse(header, data, offset)?;
-		Ok(Field { flags, name, signature })
+		let sig = BlobIndex::parse(header, data, offset)?;
+		Ok(Field { flags, name, sig })
 	}
 }
 
@@ -520,7 +528,7 @@ pub struct MethodDef {
 	// TODO(dmi): @incomplete See MethodAttributes II.23.1.10
 	flags: u16,
 	pub name: StringIndex,
-	pub signature: BlobIndex,
+	pub sig: BlobIndex,
 	// TODO(dmi): @incomplete It marks the first of a contiguous run of
 	// parameters owned by this method. The run continues
 	// to the smaller of:
@@ -538,7 +546,7 @@ impl MethodDef {
 		let impl_flags: u16 = data.read(offset)?;
 		let flags: u16 = data.read(offset)?;
 		let name = StringIndex::parse(header, data, offset)?;
-		let signature = BlobIndex::parse(header, data, offset)?;
+		let sig = BlobIndex::parse(header, data, offset)?;
 		let param_list = ParamIndex::parse(header, data, offset)?;
 
 		Ok(MethodDef {
@@ -546,7 +554,7 @@ impl MethodDef {
 			impl_flags,
 			flags,
 			name,
-			signature,
+			sig,
 			param_list,
 		})
 	}
@@ -582,6 +590,23 @@ impl InterfaceImpl {
 		let class = TypeDefIndex::parse(header, data, offset)?;
 		let iface = TypeDefOrRef::parse(header, data, offset)?;
 		Ok(InterfaceImpl { class, iface })
+	}
+}
+
+/// II.22.25
+#[derive(Debug, PartialEq, Clone)]
+pub struct MemberRef {
+	pub class: MemberRefParent,
+	pub name: StringIndex,
+	pub sig: BlobIndex,
+}
+
+impl MemberRef {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let class = MemberRefParent::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let sig = BlobIndex::parse(header, data, offset)?;
+		Ok(MemberRef { class, name, sig })
 	}
 }
 
