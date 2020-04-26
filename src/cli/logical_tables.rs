@@ -161,6 +161,9 @@ pub struct TableRows {
 	/// is merely a "forward-pointer" from each row in the
 	/// type_defs table.
 	fields: Box<[Field]>,
+	/// Conceptually, every row is owned by one, and only one,
+	/// row in type_defs.
+	method_defs: Box<[MethodDef]>,
 }
 
 impl TableRows {
@@ -184,16 +187,18 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,   METADATA_MODULE,   Module);
-		table!(type_refs, METADATA_TYPE_REF, TypeRef);
-		table!(type_defs, METADATA_TYPE_DEF, TypeDef);
-		table!(fields,    METADATA_FIELD,    Field);
+		table!(modules,     METADATA_MODULE,     Module);
+		table!(type_refs,   METADATA_TYPE_REF,   TypeRef);
+		table!(type_defs,   METADATA_TYPE_DEF,   TypeDef);
+		table!(fields,      METADATA_FIELD,      Field);
+		table!(method_defs, METADATA_METHOD_DEF, MethodDef);
 		
 		Ok(TableRows {
 			modules,
 			type_refs,
 			type_defs,
 			fields,
+			method_defs,
 		})
 	}
 }
@@ -252,8 +257,9 @@ macro_rules! simple_index {
 	};
 }
 
-simple_index!(FieldIndex, METADATA_FIELD);
+simple_index!(FieldIndex,     METADATA_FIELD);
 simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
+simple_index!(ParamIndex,     METADATA_PARAM);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -492,6 +498,47 @@ impl Field {
 		let name = StringIndex::parse(header, data, offset)?;
 		let signature = BlobIndex::parse(header, data, offset)?;
 		Ok(Field { flags, name, signature })
+	}
+}
+
+/// II.22.26
+#[derive(Debug, PartialEq, Clone)]
+pub struct MethodDef {
+	pub rva: u32,
+	// TODO(dmi): @incomplete See MethodImplAttributes II.23.1.10
+	impl_flags: u16,
+	// TODO(dmi): @incomplete See MethodAttributes II.23.1.10
+	flags: u16,
+	pub name: StringIndex,
+	pub signature: BlobIndex,
+	// TODO(dmi): @incomplete It marks the first of a contiguous run of
+	// parameters owned by this method. The run continues
+	// to the smaller of:
+	// - the last row of the params table
+	// - the next run of params, found by inspecting the
+	// param_list of the next row.
+	pub param_list: ParamIndex,
+}
+
+impl MethodDef {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		// TODO(dmi): @next Finally! Can find entry point method now
+		// and rush to get its IL-code.
+		let rva: u32 = data.read(offset)?;
+		let impl_flags: u16 = data.read(offset)?;
+		let flags: u16 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let signature = BlobIndex::parse(header, data, offset)?;
+		let param_list = ParamIndex::parse(header, data, offset)?;
+
+		Ok(MethodDef {
+			rva,
+			impl_flags,
+			flags,
+			name,
+			signature,
+			param_list,
+		})
 	}
 }
 
