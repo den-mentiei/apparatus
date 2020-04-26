@@ -316,7 +316,14 @@ impl TableRows {
 		macro_rules! table {
 			($table:ident, $id:ident, $type:ty) => {
 				let $table = if header.has_table($id) {
-					<$type>::parse_many(header, data, offset)?
+					let n = header.lens[$id] as usize;
+					let mut result = Vec::with_capacity(n);
+
+					for i in 0..n {
+						result.push(<$type>::parse(header, data, offset)?);
+					}
+
+					result.into_boxed_slice()
 				} else {
 					empty()
 				};
@@ -344,32 +351,25 @@ pub struct Module {
 }
 
 impl Module {
-	fn parse_many(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Box<[Module]>> {
-		let n = header.lens[METADATA_MODULE] as usize;
-		let mut result = Vec::with_capacity(n);
-
-		for i in 0..n {
-			let generation: u16 = data.read(offset)?;
-			if generation != 0 {
-				Err("Module has invalid generation.")?;
-			}
-
-			let name = StringIndex::parse(header, data, offset)?;
-			let mvid = GuidIndex::parse(header, data, offset)?;
-
-			let enc_id: u16 = data.read(offset)?;
-			if enc_id != 0 {
-				Err("Module.EncId is not zero.")?;
-			}
-			let enc_base_id: u16 = data.read(offset)?;
-			if enc_base_id != 0 {
-				Err("Module.EncBaseId is not zero.")?;
-			}
-
-			result.push(Module { name, mvid })
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Module> {
+		let generation: u16 = data.read(offset)?;
+		if generation != 0 {
+			Err("Module has invalid generation.")?;
 		}
 
-		Ok(result.into_boxed_slice())
+		let name = StringIndex::parse(header, data, offset)?;
+		let mvid = GuidIndex::parse(header, data, offset)?;
+
+		let enc_id: u16 = data.read(offset)?;
+		if enc_id != 0 {
+			Err("Module.EncId is not zero.")?;
+		}
+		let enc_base_id: u16 = data.read(offset)?;
+		if enc_base_id != 0 {
+			Err("Module.EncBaseId is not zero.")?;
+		}
+
+		Ok(Module { name, mvid })
 	}
 }
 
@@ -382,19 +382,11 @@ pub struct TypeRef {
 }
 
 impl TypeRef {
-	fn parse_many(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Box<[TypeRef]>> {
-		let n = header.lens[METADATA_TYPE_REF] as usize;
-		let mut result = Vec::with_capacity(n);
-
-		for i in 0..n {
-			let scope = ResolutionScope::parse(header, data, offset)?;
-			let name = StringIndex::parse(header, data, offset)?;
-			let namespace = StringIndex::parse(header, data, offset)?;
-
-			result.push(TypeRef { scope, name, namespace })
-		}
-
-		Ok(result.into_boxed_slice())
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<TypeRef> {
+		let scope = ResolutionScope::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let namespace = StringIndex::parse(header, data, offset)?;
+		Ok(TypeRef { scope, name, namespace })
 	}
 }
 
