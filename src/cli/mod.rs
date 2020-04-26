@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_PROPERTYMAP
-// 	if (valid_mask >> METADATA_PROPERTYMAP) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("PropertyMap table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* PropertyMap #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_PROPERTY
 // 	if (valid_mask >> METADATA_PROPERTY) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

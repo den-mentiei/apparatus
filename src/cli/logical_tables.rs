@@ -225,6 +225,7 @@ pub struct TableRows {
 	/// is, as a way to associate a collection of methods defined on a given
 	/// class.
 	pub events: Box<[Event]>,
+	pub property_maps: Box<[PropertyMap]>
 }
 
 impl TableRows {
@@ -265,6 +266,7 @@ impl TableRows {
 		table!(standalone_signatures, METADATA_STANDALONE_SIG,   StandAloneSig);
 		table!(event_maps,            METADATA_EVENT_MAP,        EventMap);
 		table!(events,                METADATA_EVENT,            Event);
+		table!(property_maps,         METADATA_PROPERTY_MAP,     PropertyMap);
 		
 		Ok(TableRows {
 			modules,
@@ -284,6 +286,7 @@ impl TableRows {
 			standalone_signatures,
 			event_maps,
 			events,
+			property_maps,
 		})
 	}
 }
@@ -347,6 +350,7 @@ simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
 simple_index!(ParamIndex,     METADATA_PARAM);
 simple_index!(TypeDefIndex,   METADATA_TYPE_DEF);
 simple_index!(EventIndex,     METADATA_EVENT);
+simple_index!(PropertyIndex,  METADATA_PROPERTY);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -829,6 +833,26 @@ impl Event {
 		let name = StringIndex::parse(header, data, offset)?;
 		let ty = TypeDefOrRef::parse(header, data, offset)?;
 		Ok(Event { flags, name, ty })
+	}
+}
+
+/// II.22.35
+#[derive(Debug, PartialEq, Clone)]
+pub struct PropertyMap {
+	pub parent: TypeDefIndex,
+	/// It marks the first of a contiguous run of Properties owned by
+	/// Parent. The run continues to the smaller of:
+	/// - the last row of the Property table
+	/// - the next run of Properties, found by inspecting the
+	/// property_list of the next row in property_maps
+	pub property_list: PropertyIndex,
+}
+
+impl PropertyMap {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let parent = TypeDefIndex::parse(header, data, offset)?;
+		let property_list = PropertyIndex::parse(header, data, offset)?;
+		Ok(PropertyMap { parent, property_list })
 	}
 }
 
