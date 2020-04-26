@@ -241,8 +241,13 @@ pub struct TableRows {
 	/// TypeSpec tokens can be used with any of the CIL instructions
 	/// that take a TypeDef or TypeRef token; specifically, castclass, cpobj,
 	/// initobj, isinst, ldelema, ldobj, mkrefany, newarr, refanyval, sizeof,
-	/// stobj, box, and unbox
+	/// stobj, box, and unbox.
 	pub type_specs: Box<[TypeSpec]>,
+	/// The ImplMap table holds information about unmanaged methods that can
+	/// be reached from managed code, using PInvoke dispatch. Each row of the
+	/// ImplMap table associates a row in the MethodDef table (MemberForwarded)
+	/// with the name of a routine (ImportName) in some unmanaged DLL (ImportScope).
+	pub impl_maps: Box<[ImplMap]>,
 }
 
 impl TableRows {
@@ -289,6 +294,7 @@ impl TableRows {
 		table!(method_impls,          METADATA_METHOD_IMPL,      MethodImpl);
 		table!(module_refs,           METADATA_MODULE_REF,       ModuleRef);
 		table!(type_specs,            METADATA_TYPE_SPEC,        TypeSpec);
+		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
 		
 		Ok(TableRows {
 			modules,
@@ -314,6 +320,7 @@ impl TableRows {
 			method_impls,
 			module_refs,
 			type_specs,
+			impl_maps,
 		})
 	}
 }
@@ -378,6 +385,7 @@ simple_index!(ParamIndex,     METADATA_PARAM);
 simple_index!(TypeDefIndex,   METADATA_TYPE_DEF);
 simple_index!(EventIndex,     METADATA_EVENT);
 simple_index!(PropertyIndex,  METADATA_PROPERTY);
+simple_index!(ModuleRefIndex, METADATA_MODULE_REF);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -967,6 +975,26 @@ impl TypeSpec {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let sig = BlobIndex::parse(header, data, offset)?;
 		Ok(TypeSpec { sig })
+	}
+}
+
+/// II.22.22
+#[derive(Debug, PartialEq, Clone)]
+pub struct ImplMap {
+	// TODO(dmi): @incomplete See PInvoke.Attributes II.23.18
+	flags: u16,
+	pub member_fwd: MemberForwarded,
+	pub name: StringIndex,
+	pub scope: ModuleRefIndex,
+}
+
+impl ImplMap {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u16 = data.read(offset)?;
+		let member_fwd = MemberForwarded::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let scope = ModuleRefIndex::parse(header, data, offset)?;
+		Ok(ImplMap { flags, member_fwd, name, scope })
 	}
 }
 
