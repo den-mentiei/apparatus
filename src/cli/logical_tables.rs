@@ -196,6 +196,11 @@ pub struct TableRows {
 	/// System.Security.Permissions.SecurityAttribute (see Partition IV), can
 	/// be attached to a TypeDef, a Method, or an Assembly.
 	pub security_attributes: Box<[DeclSecutity]>,
+	/// The ClassLayout table is used to define how the fields of a class
+	/// or value type shall be laid out by the CLI. (Normally, the CLI is free
+	/// to reorder and/or insert gaps between the fields defined for a class
+	/// or value type.)
+	pub class_layouts: Box<[ClassLayout]>,
 }
 
 impl TableRows {
@@ -231,6 +236,7 @@ impl TableRows {
 		table!(custom_attributes,   METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
 		table!(field_marshals,      METADATA_FIELD_MARSHAL,    FieldMarshal);
 		table!(security_attributes, METADATA_FIELD_MARSHAL,    DeclSecutity);
+		table!(class_layouts,       METADATA_CLASS_LAYOUT,     ClassLayout);
 		
 		Ok(TableRows {
 			modules,
@@ -245,6 +251,7 @@ impl TableRows {
 			custom_attributes,
 			field_marshals,
 			security_attributes,
+			class_layouts,
 		})
 	}
 }
@@ -706,6 +713,23 @@ impl DeclSecutity {
 		let parent = HasDeclSecurity::parse(header, data, offset)?;
 		let permission_set = BlobIndex::parse(header, data, offset)?;
 		Ok(DeclSecutity { action, parent, permission_set })
+	}
+}
+
+/// II.22.8
+#[derive(Debug, PartialEq, Clone)]
+pub struct ClassLayout {
+	pub packing_size: u16,
+	pub class_size: u32,
+	pub parent: TypeDefIndex,
+}
+
+impl ClassLayout {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let packing_size: u16 = data.read(offset)?;
+		let class_size: u32 = data.read(offset)?;
+		let parent = TypeDefIndex::parse(header, data, offset)?;
+		Ok(ClassLayout { packing_size, class_size, parent })
 	}
 }
 
