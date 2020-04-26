@@ -225,7 +225,11 @@ pub struct TableRows {
 	/// is, as a way to associate a collection of methods defined on a given
 	/// class.
 	pub events: Box<[Event]>,
-	pub property_maps: Box<[PropertyMap]>
+	pub property_maps: Box<[PropertyMap]>,
+    /// Properties within metadata are best viewed as a means to
+	/// gather together collections of methods defined on a class, give them a
+	/// name, and not much else.
+	pub properties: Box<[Property]>,
 }
 
 impl TableRows {
@@ -267,6 +271,7 @@ impl TableRows {
 		table!(event_maps,            METADATA_EVENT_MAP,        EventMap);
 		table!(events,                METADATA_EVENT,            Event);
 		table!(property_maps,         METADATA_PROPERTY_MAP,     PropertyMap);
+		table!(properties,            METADATA_PROPERTY,         Property);
 		
 		Ok(TableRows {
 			modules,
@@ -287,6 +292,7 @@ impl TableRows {
 			event_maps,
 			events,
 			property_maps,
+			properties,
 		})
 	}
 }
@@ -853,6 +859,27 @@ impl PropertyMap {
 		let parent = TypeDefIndex::parse(header, data, offset)?;
 		let property_list = PropertyIndex::parse(header, data, offset)?;
 		Ok(PropertyMap { parent, property_list })
+	}
+}
+
+/// II.22.34
+#[derive(Debug, PartialEq, Clone)]
+pub struct Property {
+	// TODO(dmi): @incomplete See PropertyAttributes II.23.1.14
+	flags: u16,
+	pub name: StringIndex,
+	/// The name of this column is misleading. It does not index a TypeDef or
+	/// TypeRef table - instead it indexes the signature in the Blob heap of
+	/// the Property
+	pub ty: BlobIndex,
+}
+
+impl Property {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u16 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let ty = BlobIndex::parse(header, data, offset)?;
+		Ok(Property { flags, name, ty })
 	}
 }
 
