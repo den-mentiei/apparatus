@@ -248,6 +248,14 @@ pub struct TableRows {
 	/// ImplMap table associates a row in the MethodDef table (MemberForwarded)
 	/// with the name of a routine (ImportName) in some unmanaged DLL (ImportScope).
 	pub impl_maps: Box<[ImplMap]>,
+	/// Conceptually, each row in the FieldRVA table is an extension to
+	/// exactly one row in the Field table, and records the RVA (Relative
+	/// Virtual Address) within the image file at which this field's initial
+	/// value is stored.  A row in the FieldRVA table is created for each
+	/// static parent field that has specified the optional data label
+	/// II.16). The RVA column is the relative virtual address of the data in
+	/// the PE file (II.16.3).
+	pub field_rvas: Box<[FieldRVA]>,
 }
 
 impl TableRows {
@@ -295,6 +303,7 @@ impl TableRows {
 		table!(module_refs,           METADATA_MODULE_REF,       ModuleRef);
 		table!(type_specs,            METADATA_TYPE_SPEC,        TypeSpec);
 		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
+		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
 		
 		Ok(TableRows {
 			modules,
@@ -321,6 +330,7 @@ impl TableRows {
 			module_refs,
 			type_specs,
 			impl_maps,
+			field_rvas,
 		})
 	}
 }
@@ -995,6 +1005,21 @@ impl ImplMap {
 		let name = StringIndex::parse(header, data, offset)?;
 		let scope = ModuleRefIndex::parse(header, data, offset)?;
 		Ok(ImplMap { flags, member_fwd, name, scope })
+	}
+}
+
+/// II.22.18
+#[derive(Debug, PartialEq, Clone)]
+pub struct FieldRVA {
+	pub rva: u32,
+	pub field: FieldIndex,
+}
+
+impl FieldRVA {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let rva: u32 = data.read(offset)?;
+		let field = FieldIndex::parse(header, data, offset)?;
+		Ok(FieldRVA { rva, field })
 	}
 }
 
