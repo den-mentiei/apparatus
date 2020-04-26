@@ -173,6 +173,27 @@ impl GuidIndex {
 	}
 }
 
+macro_rules! simple_index {
+	($name:ident, $id:ident) => {
+		#[derive(Debug, PartialEq, Clone, Default)]
+		pub struct $name(u32);
+
+		impl $name {
+			fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+				let i = if header.lens[$id] <= 0xFFFF {
+					$name(data.read::<u16>(offset)? as u32)
+				} else {
+					$name(data.read::<u32>(offset)? as u32)
+				};
+				Ok(i)
+			}
+		}
+	};
+}
+
+simple_index!(FieldIndex, METADATA_FIELD);
+simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
+
 macro_rules! max {
 	($x:expr) => ($x);
 	($x:expr, $($xs:expr),+) => {
@@ -307,6 +328,10 @@ coded_index!(ResolutionScope, 2,
 pub struct TableRows {
 	modules: Box<[Module]>,
 	type_refs: Box<[TypeRef]>,
+	/// The first row represents the pseudo class that acts
+	/// as a parent for functions and variables define at
+	/// module scope.
+	type_defs: Box<[TypeDef]>,
 }
 
 impl TableRows {
@@ -332,10 +357,12 @@ impl TableRows {
 
 		table!(modules,   METADATA_MODULE,   Module);
 		table!(type_refs, METADATA_TYPE_REF, TypeRef);
+		table!(type_defs, METADATA_TYPE_DEF, TypeDef);
 		
 		Ok(TableRows {
 			modules,
 			type_refs,
+			type_defs,
 		})
 	}
 }
@@ -389,6 +416,61 @@ impl TypeRef {
 		Ok(TypeRef { scope, name, namespace })
 	}
 }
+
+/// II.22.37
+#[derive(Debug, PartialEq, Clone)]
+pub struct TypeDef {
+	// TODO(dmi): @incomplete See TypeAttributes II.23.1.15
+	flags: u32,
+	pub name: StringIndex,
+	pub namespace: StringIndex,
+	pub extends: TypeDefOrRef,
+	// TODO(dmi): @incomplete It marks the first of a contiguous run of
+    // Fields owned by this Type. The run continues to the smaller of:
+	// - the last row of the Field table
+	// - the next run of Fields, found by inspecting the field_list of
+	// the next row in TypeDef table.
+	field_list: FieldIndex,
+	// TODO(dmi): @incomplete It marks the first of a continguous run of
+	// Methods owned bu this Type. The run continues to the smaller of:
+	// - the last row of the MethodDef table
+	// - the next run of Methods, found by inspecting the method_list of
+	// the next row in TypeDef table.
+	method_list: MethodDefIndex,
+}
+
+impl TypeDef {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<TypeDef> {
+		let flags: u32 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let namespace = StringIndex::parse(header, data, offset)?;
+		let extends = TypeDefOrRef::parse(header, data, offset)?;
+		let field_list = FieldIndex::parse(header, data, offset)?;
+		let method_list = MethodDefIndex::parse(header, data, offset)?;
+		
+		Ok(TypeDef {
+			flags,
+			name,
+			namespace,
+			extends,
+			field_list,
+			method_list,
+		})
+	}
+}
+
+// =======================================================================================
+
+/// II.24.2.6
+// #[derive(Debug, PartialEq, Clone)]
+// pub struct TypeDef {
+// }
+
+// impl TypeDef {
+// 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<TypeDef> {
+// 		Ok(TypeDef {  })
+// 	}
+// }
 
 fn empty<T>() -> Box<[T]> {
 	Box::new([])
