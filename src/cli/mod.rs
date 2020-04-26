@@ -13,54 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_CONSTANT II.22.9
-// 	if (valid_mask >> METADATA_CONSTANT) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("Constant table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* Constant #{}", i);
-
-// 			// A 1-byte constant, followed by a 1-byte padding zero.
-// 			let ty = data[offset..].read_u8()?;
-// 			offset += 2;
-
-// 			// TODO(dmi): @incomplete As far as I understand, it can be
-// 			// followed by other bytes depending on type.
-
-// 			// II.24.2.6
-// 			const TAG_MASK: usize = 0b11;
-// 			const FIELD:    usize = 0;
-// 			const PARAM:    usize = 1;
-// 			const PROPERTY: usize = 2;
-
-// 			let max_len = max!(
-// 				table_lens[METADATA_PARAM],
-// 				table_lens[METADATA_FIELD],
-// 				table_lens[METADATA_PROPERTY]) as usize;
-// 			let size  = if max_len < size_for_big_index(3) { 2 } else { 4 };
-// 			let shift = log2(TAG_MASK);
-
-// 			let parent = read_idx(data, offset, size)?;
-// 			offset += size;
-
-// 			print!("  parent ");
-// 			match parent & TAG_MASK {
-// 				FIELD    => print!("Field"),
-// 				PARAM    => print!("Param"),
-// 				PROPERTY => print!("Property"),
-// 				_ => Err("Invalid HasConstant tag.")?,
-// 			};
-// 			println!(" {:#0x}", parent >> shift);
-			
-// 			let value_bi = read_idx(data, offset, bi_size)?;
-// 			offset += bi_size;
-// 			println!("  value: {:#0x}", value_bi);
-// 		}
-
-// 		t += 1;
-// 	}
-	
 // 	// METADATA_CUSTOMATTRIBUTE II.22.10
 // 	if (valid_mask >> METADATA_CUSTOMATTRIBUTE) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

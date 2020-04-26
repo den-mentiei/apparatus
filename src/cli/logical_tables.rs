@@ -175,6 +175,13 @@ pub struct TableRows {
 	/// with a VARARG signature, even when it is defined in the same module as
 	/// the call site.)
 	member_refs: Box<[MemberRef]>,
+	/// Note that Constant information does not directly influence runtime
+	/// behavior, although it is visible via Reflection (and hence can be used
+	/// to implement functionality such as that provided by
+	/// System.Enum.ToString). Compilers inspect this information, at compile
+	/// time, when importing metadata, but the value of the constant itself,
+	/// if used, becomes embedded into the CIL stream the compiler emits.
+	constants: Box<[Constant]>,
 }
 
 impl TableRows {
@@ -206,6 +213,7 @@ impl TableRows {
 		table!(params,          METADATA_PARAM,          Param);
 		table!(interface_impls, METADATA_INTERFACE_IMPL, InterfaceImpl);
 		table!(member_refs,     METADATA_MEMBER_REF,     MemberRef);
+		table!(constants,       METADATA_CONSTANT,       Constant);
 		
 		Ok(TableRows {
 			modules,
@@ -216,6 +224,7 @@ impl TableRows {
 			params,
 			interface_impls,
 			member_refs,
+			constants,
 		})
 	}
 }
@@ -607,6 +616,26 @@ impl MemberRef {
 		let name = StringIndex::parse(header, data, offset)?;
 		let sig = BlobIndex::parse(header, data, offset)?;
 		Ok(MemberRef { class, name, sig })
+	}
+}
+
+/// II.22.9
+#[derive(Debug, PartialEq, Clone)]
+pub struct Constant {
+	// TODO(dmi) @incomplete See II.23.1.6
+	ty: u8,
+	pub parent: HasConstant,
+	pub value: BlobIndex,
+}
+
+impl Constant {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let ty: u8 = data.read(offset)?;
+		// Padding.
+		*offset += 1;
+		let parent = HasConstant::parse(header, data, offset)?;
+		let value = BlobIndex::parse(header, data, offset)?;
+		Ok(Constant { ty, parent, value })
 	}
 }
 
