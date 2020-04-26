@@ -227,107 +227,75 @@ macro_rules! coded_index {
 // II 24.2.6
 
 coded_index!(TypeDefOrRef, 2,
-			 (TypeDef  0, METADATA_TYPE_DEF)
-			 (TypeRef  1, METADATA_TYPE_REF)
-			 (TypeSpec 2, METADATA_TYPE_SPEC));
+	(TypeDef  0, METADATA_TYPE_DEF)
+	(TypeRef  1, METADATA_TYPE_REF)
+	(TypeSpec 2, METADATA_TYPE_SPEC));
 
-/// 2 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum HasConstant {
-	Field(u32),
-	Param(u32),
-	Property(u32),
-}
+coded_index!(HasConstant, 2,
+	(Field    0, METADATA_FIELD)
+	(Param    1, METADATA_PARAM)
+	(Property 2, METADATA_PROPERTY));
 
-/// 5 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum HasCustomAttribute {
-	MethodDef(u32),
-	Field(u32),
-	TypeRef(u32),
-	TypeDef(u32),
-	Param(u32),
-	InterfaceImpl(u32),
-	MemberRef(u32),
-	Module(u32),
-	Permission(u32),
-	Property(u32),
-	Event(u32),
-	StandAloneSig(u32),
-	ModuleRef(u32),
-	TypeSpec(u32),
-	Assembly(u32),
-	AssemblyRef(u32),
-	File(u32),
-	ExportedType(u32),
-	ManifestResource(u32),
-	GenericParam(u32),
-	GenericParamConstraint(u32),
-	MethodSpec(u32),
-}
+coded_index!(HasCustomAttribute, 5,
+	(MethodDef               0, METADATA_METHOD_DEF)
+	(Field                   1, METADATA_FIELD)
+	(TypeRef                 2, METADATA_TYPE_REF)
+	(TypeDef                 3, METADATA_TYPE_DEF)
+	(Param                   4, METADATA_PARAM)
+	(InterfaceImpl           5, METADATA_INTERFACE_IMPL)
+	(MemberRef               6, METADATA_MEMBER_REF)
+	(Module                  7, METADATA_MODULE)
+	(Permission              8, METADATA_DECL_SECURITY)
+	(Property                9, METADATA_PROPERTY)
+	(Event                  10, METADATA_EVENT)
+	(StandAloneSig          11, METADATA_STANDALONE_SIG)
+	(ModuleRef              12, METADATA_MODULE_REF)
+	(TypeSpec               13, METADATA_TYPE_SPEC)
+	(Assembly               14, METADATA_ASSEMBLY)
+	(AssemblyRef            15, METADATA_ASSEMBLY_REF)
+	(File                   16, METADATA_FILE)
+	(ExportedType           17, METADATA_EXPORTED_TYPE)
+	(ManifestResource       18, METADATA_MANIFEST_RESOURCE)
+	(GenericParam           19, METADATA_GENERIC_PARAM)
+	(GenericParamConstraint 20, METADATA_GENERIC_PARAM_CONSTRAINT)
+	(MethodSpec             21, METADATA_METHOD_SPEC));
 
-/// 1 bit to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum HasFieldMarshall {
-	Field(u32),
-	Param(u32),
-}
+coded_index!(HasFieldMarshall, 1,
+	(Field 0, METADATA_FIELD)
+	(Param 1, METADATA_PARAM));
 
-/// 2 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum HasDeclSecurity {
-	TypeDef(u32),
-	MethodDef(u32),
-	Assembly(u32),
-}
+coded_index!(HasDeclSecurity, 2,
+	(TypeDef   0, METADATA_TYPE_DEF)
+	(MethodDef 1, METADATA_METHOD_DEF)
+	(Assembly  2, METADATA_ASSEMBLY));
 
-/// 3 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum MemberRefParent {
-	TypeDef(u32),
-	TypeRef(u32),
-	ModuleRef(u32),
-	MethodDef(u32),
-	TypeSpec(u32),
-}
+coded_index!(MemberRefParent, 3,
+	(TypeDef   0, METADATA_TYPE_DEF)
+	(TypeRef   1, METADATA_TYPE_REF)
+	(ModuleRef 2, METADATA_MODULE_REF)
+	(MethodDef 3, METADATA_METHOD_DEF)
+	(TypeSpec  4, METADATA_TYPE_SPEC));
 
-/// 1 bit to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum HasSemantics {
-	Event(u32),
-	Property(u32),
-}
+coded_index!(HasSemantics, 1,
+	(Event    0, METADATA_EVENT)
+	(Property 1, METADATA_PROPERTY));
 
-/// 1 bit to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum MethodDefOrRef {
-	MethodDef(u32),
-	MemberRef(u32),
-}
+coded_index!(MethodDefOrRef, 1,
+	(MethodDef 0, METADATA_METHOD_DEF)
+	(MemberRef 1, METADATA_MEMBER_REF));
 
-/// 1 bit to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum MemberForwarded {
-	Field(u32),
-	MethodDef(u32),
-}
+coded_index!(MemberForwarded, 1,
+	(Field     0, METADATA_FIELD)
+	(MethodDef 1, METADATA_METHOD_DEF));
 
-/// 2 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Implementation {
-	File(u32),
-	AssemblyRef(u32),
-	ExportedType(u32),
-}
+coded_index!(Implementation, 2,
+	(File         0, METADATA_FILE)
+	(AssemblyRef  1, METADATA_ASSEMBLY_REF)
+	(ExportedType 2, METADATA_EXPORTED_TYPE));
 
-/// 3 bits to encode tag.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum CustomAttributeType {
-	/// Tag 2.
-	MethodDef(u32),
-	/// Tag 3.
-	MemberRef(u32),
-}
+coded_index!(CustomAttributeType, 3,
+	(MethodDef 2, METADATA_METHOD_DEF)
+	(MemberRef 3, METADATA_MEMBER_REF));
 
 coded_index!(ResolutionScope, 2,
 	(Module      0, METADATA_MODULE)
