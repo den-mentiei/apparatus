@@ -202,6 +202,21 @@ pub struct TableRows {
 	/// or value type.)
 	pub class_layouts: Box<[ClassLayout]>,
 	pub field_layouts: Box<[FieldLayout]>,
+	/// Signatures are stored in the metadata Blob heap. In most cases, they
+	/// are indexed by a column in some table - Field.Signature,
+	/// Method.Signature, MemberRef.Signature, etc. However, there are two
+	/// cases that require a metadata token for a signature that is not
+	/// indexed by any metadata table. The StandAloneSig table fulfils this
+	/// need.
+	/// The signature shall describe either:
+	/// - a method - code generators create a row in the StandAloneSig
+	/// table for each occurrence of a calli CIL instruction. That row indexes
+	/// the call-site signature for the function pointer operand of the calli
+	/// instruction
+	/// - local variables - code generators create one row in the
+	/// standalone_signatures for each method, to describe all of its local
+	/// variables.
+	pub standalone_signatures: Box<[StandAloneSig]>,
 }
 
 impl TableRows {
@@ -225,20 +240,21 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,             METADATA_MODULE,           Module);
-		table!(type_refs,           METADATA_TYPE_REF,         TypeRef);
-		table!(type_defs,           METADATA_TYPE_DEF,         TypeDef);
-		table!(fields,              METADATA_FIELD,            Field);
-		table!(method_defs,         METADATA_METHOD_DEF,       MethodDef);
-		table!(params,              METADATA_PARAM,            Param);
-		table!(interface_impls,     METADATA_INTERFACE_IMPL,   InterfaceImpl);
-		table!(member_refs,         METADATA_MEMBER_REF,       MemberRef);
-		table!(constants,           METADATA_CONSTANT,         Constant);
-		table!(custom_attributes,   METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
-		table!(field_marshals,      METADATA_FIELD_MARSHAL,    FieldMarshal);
-		table!(security_attributes, METADATA_FIELD_MARSHAL,    DeclSecutity);
-		table!(class_layouts,       METADATA_CLASS_LAYOUT,     ClassLayout);
-		table!(field_layouts,       METADATA_FIELD_LAYOUT,     FieldLayout);
+		table!(modules,               METADATA_MODULE,           Module);
+		table!(type_refs,             METADATA_TYPE_REF,         TypeRef);
+		table!(type_defs,             METADATA_TYPE_DEF,         TypeDef);
+		table!(fields,                METADATA_FIELD,            Field);
+		table!(method_defs,           METADATA_METHOD_DEF,       MethodDef);
+		table!(params,                METADATA_PARAM,            Param);
+		table!(interface_impls,       METADATA_INTERFACE_IMPL,   InterfaceImpl);
+		table!(member_refs,           METADATA_MEMBER_REF,       MemberRef);
+		table!(constants,             METADATA_CONSTANT,         Constant);
+		table!(custom_attributes,     METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
+		table!(field_marshals,        METADATA_FIELD_MARSHAL,    FieldMarshal);
+		table!(security_attributes,   METADATA_FIELD_MARSHAL,    DeclSecutity);
+		table!(class_layouts,         METADATA_CLASS_LAYOUT,     ClassLayout);
+		table!(field_layouts,         METADATA_FIELD_LAYOUT,     FieldLayout);
+		table!(standalone_signatures, METADATA_STANDALONE_SIG,   StandAloneSig);
 		
 		Ok(TableRows {
 			modules,
@@ -255,6 +271,7 @@ impl TableRows {
 			security_attributes,
 			class_layouts,
 			field_layouts,
+			standalone_signatures,
 		})
 	}
 }
@@ -748,6 +765,19 @@ impl FieldLayout {
 		let f_offset: u32 = data.read(offset)?;
 		let field = FieldIndex::parse(header, data, offset)?;
 		Ok(FieldLayout { offset: f_offset, field })
+	}
+}
+
+/// II.22.36
+#[derive(Debug, PartialEq, Clone)]
+pub struct StandAloneSig {
+	pub sig: BlobIndex,
+}
+
+impl StandAloneSig {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let sig = BlobIndex::parse(header, data, offset)?;
+		Ok(StandAloneSig { sig })
 	}
 }
 

@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_STANDALONESIG
-// 	if (valid_mask >> METADATA_STANDALONESIG) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("StandaloneSig table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* StandaloneSig #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_EVENTMAP
 // 	if (valid_mask >> METADATA_EVENTMAP) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
