@@ -164,6 +164,9 @@ pub struct TableRows {
 	/// Conceptually, every row is owned by one, and only one,
 	/// row in type_defs.
 	method_defs: Box<[MethodDef]>,
+	/// Conceptually, every row is owned by one, and only one,
+	/// row in method_defs.
+	params: Box<[Param]>,
 }
 
 impl TableRows {
@@ -192,6 +195,7 @@ impl TableRows {
 		table!(type_defs,   METADATA_TYPE_DEF,   TypeDef);
 		table!(fields,      METADATA_FIELD,      Field);
 		table!(method_defs, METADATA_METHOD_DEF, MethodDef);
+		table!(params,      METADATA_PARAM,      Param);
 		
 		Ok(TableRows {
 			modules,
@@ -199,6 +203,7 @@ impl TableRows {
 			type_defs,
 			fields,
 			method_defs,
+			params,
 		})
 	}
 }
@@ -539,6 +544,24 @@ impl MethodDef {
 			signature,
 			param_list,
 		})
+	}
+}
+
+/// II.22.33
+#[derive(Debug, PartialEq, Clone)]
+pub struct Param {
+	// TODO(dmi): @incomplete See ParamAttributes II.23.1.13
+	flags: u16,
+	pub seq: u16,
+	pub name: StringIndex,
+}
+
+impl Param {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u16 = data.read(offset)?;
+		let seq: u16 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		Ok(Param { flags, seq, name })
 	}
 }
 
