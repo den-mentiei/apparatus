@@ -13,51 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_INTERFACEIMPL II.22.23
-// 	// The InterfaceImpl table records the interfaces a type
-// 	// implements explicitly.  Conceptually, each row in the
-// 	// InterfaceImpl table indicates that Class implements Interface.
-// 	if (valid_mask >> METADATA_INTERFACEIMPL) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("InterfaceImpl table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* InterfaceImpl #{}", i);
-
-// 			let ti_size   = if table_lens[METADATA_TYPEDEF] <= 0xFFFF { 2 } else { 4 };
-// 			let class_idx = read_idx(data, offset, ti_size)?;
-// 			offset += ti_size;
-// 			println!("  class: {:#0x}", class_idx);
-
-// 			// II.24.2.6:
-// 			const TAG_MASK: usize = 0b11;
-// 			const TYPEDEF:  usize = 0;
-// 			const TYPEREF:  usize = 1;
-// 			const TYPESPEC: usize = 2;
-
-// 			let max_len = max!(
-// 				table_lens[METADATA_TYPEDEF],
-// 				table_lens[METADATA_TYPEREF],
-// 				table_lens[METADATA_TYPESPEC]) as usize;
-// 			let size  = if max_len < size_for_big_index(3) { 2 } else { 4 };
-// 			let shift = log2(TAG_MASK);
-
-// 			let interface = read_idx(data, offset, size)?;
-// 			offset += size;
-
-// 			print!("  interface ");
-// 			match interface & TAG_MASK {
-// 				TYPEDEF => print!("TypeDef"),
-// 				TYPEREF => print!("TypeRef"),
-// 				TYPESPEC => print!("TypeSpec"),
-// 				_ => Err("Invalid TypeDefOrRef tag.")?,
-// 			};
-// 			println!(" {:#0x}", interface >> shift);
-// 		}
-
-// 		t += 1;
-// 	}
-	
 // 	// METADATA_MEMBERREF II 22.25
 // 	// An entry is made into the MemberRef table whenever a reference
 // 	// is made in the CIL code to a method or field which is defined

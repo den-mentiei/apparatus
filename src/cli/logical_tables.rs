@@ -167,6 +167,8 @@ pub struct TableRows {
 	/// Conceptually, every row is owned by one, and only one,
 	/// row in method_defs.
 	params: Box<[Param]>,
+	/// Records the interfaces a type implements explicitly.
+	interface_impls: Box<[InterfaceImpl]>,
 }
 
 impl TableRows {
@@ -190,12 +192,13 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,     METADATA_MODULE,     Module);
-		table!(type_refs,   METADATA_TYPE_REF,   TypeRef);
-		table!(type_defs,   METADATA_TYPE_DEF,   TypeDef);
-		table!(fields,      METADATA_FIELD,      Field);
-		table!(method_defs, METADATA_METHOD_DEF, MethodDef);
-		table!(params,      METADATA_PARAM,      Param);
+		table!(modules,         METADATA_MODULE,         Module);
+		table!(type_refs,       METADATA_TYPE_REF,       TypeRef);
+		table!(type_defs,       METADATA_TYPE_DEF,       TypeDef);
+		table!(fields,          METADATA_FIELD,          Field);
+		table!(method_defs,     METADATA_METHOD_DEF,     MethodDef);
+		table!(params,          METADATA_PARAM,          Param);
+		table!(interface_impls, METADATA_INTERFACE_IMPL, InterfaceImpl);
 		
 		Ok(TableRows {
 			modules,
@@ -204,6 +207,7 @@ impl TableRows {
 			fields,
 			method_defs,
 			params,
+			interface_impls,
 		})
 	}
 }
@@ -265,6 +269,7 @@ macro_rules! simple_index {
 simple_index!(FieldIndex,     METADATA_FIELD);
 simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
 simple_index!(ParamIndex,     METADATA_PARAM);
+simple_index!(TypeDefIndex,   METADATA_TYPE_DEF);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -562,6 +567,21 @@ impl Param {
 		let seq: u16 = data.read(offset)?;
 		let name = StringIndex::parse(header, data, offset)?;
 		Ok(Param { flags, seq, name })
+	}
+}
+
+/// II.22.23
+#[derive(Debug, PartialEq, Clone)]
+pub struct InterfaceImpl {
+	pub class: TypeDefIndex,
+	pub iface: TypeDefOrRef,
+}
+
+impl InterfaceImpl {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let class = TypeDefIndex::parse(header, data, offset)?;
+		let iface = TypeDefOrRef::parse(header, data, offset)?;
+		Ok(InterfaceImpl { class, iface })
 	}
 }
 
