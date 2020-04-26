@@ -217,6 +217,10 @@ pub struct TableRows {
 	/// standalone_signatures for each method, to describe all of its local
 	/// variables.
 	pub standalone_signatures: Box<[StandAloneSig]>,
+	/// EventMap info does not directly influence runtime behavior;
+	/// what counts is the information stored for each method that the
+	/// event comprises.
+	pub event_maps: Box<[EventMap]>,
 }
 
 impl TableRows {
@@ -255,6 +259,7 @@ impl TableRows {
 		table!(class_layouts,         METADATA_CLASS_LAYOUT,     ClassLayout);
 		table!(field_layouts,         METADATA_FIELD_LAYOUT,     FieldLayout);
 		table!(standalone_signatures, METADATA_STANDALONE_SIG,   StandAloneSig);
+		table!(event_maps,            METADATA_EVENT_MAP,        EventMap);
 		
 		Ok(TableRows {
 			modules,
@@ -272,6 +277,7 @@ impl TableRows {
 			class_layouts,
 			field_layouts,
 			standalone_signatures,
+			event_maps,
 		})
 	}
 }
@@ -334,6 +340,7 @@ simple_index!(FieldIndex,     METADATA_FIELD);
 simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
 simple_index!(ParamIndex,     METADATA_PARAM);
 simple_index!(TypeDefIndex,   METADATA_TYPE_DEF);
+simple_index!(EventIndex,     METADATA_EVENT);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -523,13 +530,13 @@ pub struct TypeDef {
 	pub name: StringIndex,
 	pub namespace: StringIndex,
 	pub extends: TypeDefOrRef,
-	// TODO(dmi): @incomplete It marks the first of a contiguous run of
+	// It marks the first of a contiguous run of
     // Fields owned by this Type. The run continues to the smaller of:
 	// - the last row of the Field table
 	// - the next run of Fields, found by inspecting the field_list of
 	// the next row in TypeDef table.
 	field_list: FieldIndex,
-	// TODO(dmi): @incomplete It marks the first of a continguous run of
+	// It marks the first of a continguous run of
 	// Methods owned bu this Type. The run continues to the smaller of:
 	// - the last row of the MethodDef table
 	// - the next run of Methods, found by inspecting the method_list of
@@ -778,6 +785,26 @@ impl StandAloneSig {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let sig = BlobIndex::parse(header, data, offset)?;
 		Ok(StandAloneSig { sig })
+	}
+}
+
+/// II.22.12
+#[derive(Debug, PartialEq, Clone)]
+pub struct EventMap {
+	pub parent: TypeDefIndex,
+	/// It marks the first of a contiguous run of Events owned by this
+	/// type. That run continues to the smaller of:
+	/// - the last row othe events
+	/// - the next run of Events, found by inspecting the event_list of
+	/// the next row in event_maps
+	pub event_list: EventIndex,
+}
+
+impl EventMap {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let parent = TypeDefIndex::parse(header, data, offset)?;
+		let event_list = EventIndex::parse(header, data, offset)?;
+		Ok(EventMap { parent, event_list })
 	}
 }
 
