@@ -201,6 +201,7 @@ pub struct TableRows {
 	/// to reorder and/or insert gaps between the fields defined for a class
 	/// or value type.)
 	pub class_layouts: Box<[ClassLayout]>,
+	pub field_layouts: Box<[FieldLayout]>,
 }
 
 impl TableRows {
@@ -237,6 +238,7 @@ impl TableRows {
 		table!(field_marshals,      METADATA_FIELD_MARSHAL,    FieldMarshal);
 		table!(security_attributes, METADATA_FIELD_MARSHAL,    DeclSecutity);
 		table!(class_layouts,       METADATA_CLASS_LAYOUT,     ClassLayout);
+		table!(field_layouts,       METADATA_FIELD_LAYOUT,     FieldLayout);
 		
 		Ok(TableRows {
 			modules,
@@ -252,6 +254,7 @@ impl TableRows {
 			field_marshals,
 			security_attributes,
 			class_layouts,
+			field_layouts,
 		})
 	}
 }
@@ -730,6 +733,21 @@ impl ClassLayout {
 		let class_size: u32 = data.read(offset)?;
 		let parent = TypeDefIndex::parse(header, data, offset)?;
 		Ok(ClassLayout { packing_size, class_size, parent })
+	}
+}
+
+/// II.22.16
+#[derive(Debug, PartialEq, Clone)]
+pub struct FieldLayout {
+	pub offset: u32,
+	pub field: FieldIndex,
+}
+
+impl FieldLayout {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let f_offset: u32 = data.read(offset)?;
+		let field = FieldIndex::parse(header, data, offset)?;
+		Ok(FieldLayout { offset: f_offset, field })
 	}
 }
 

@@ -13,30 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_CLASSLAYOUT
-// 	if (valid_mask >> METADATA_CLASSLAYOUT) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("ClassLayout table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* ClassLayout #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
-// 	// METADATA_FIELDLAYOUT
-// 	if (valid_mask >> METADATA_FIELDLAYOUT) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("FieldLayout table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* FieldLayout #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_STANDALONESIG
 // 	if (valid_mask >> METADATA_STANDALONESIG) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
