@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_EVENT
-// 	if (valid_mask >> METADATA_EVENT) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("Event table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* Event #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_PROPERTYMAP
 // 	if (valid_mask >> METADATA_PROPERTYMAP) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

@@ -221,6 +221,10 @@ pub struct TableRows {
 	/// what counts is the information stored for each method that the
 	/// event comprises.
 	pub event_maps: Box<[EventMap]>,
+	/// Events are treated within metadata much like Properties; that
+	/// is, as a way to associate a collection of methods defined on a given
+	/// class.
+	pub events: Box<[Event]>,
 }
 
 impl TableRows {
@@ -260,6 +264,7 @@ impl TableRows {
 		table!(field_layouts,         METADATA_FIELD_LAYOUT,     FieldLayout);
 		table!(standalone_signatures, METADATA_STANDALONE_SIG,   StandAloneSig);
 		table!(event_maps,            METADATA_EVENT_MAP,        EventMap);
+		table!(events,                METADATA_EVENT,            Event);
 		
 		Ok(TableRows {
 			modules,
@@ -278,6 +283,7 @@ impl TableRows {
 			field_layouts,
 			standalone_signatures,
 			event_maps,
+			events,
 		})
 	}
 }
@@ -805,6 +811,24 @@ impl EventMap {
 		let parent = TypeDefIndex::parse(header, data, offset)?;
 		let event_list = EventIndex::parse(header, data, offset)?;
 		Ok(EventMap { parent, event_list })
+	}
+}
+
+/// II.22.13
+#[derive(Debug, PartialEq, Clone)]
+pub struct Event {
+	// TODO(dmi): @incomplete See EventAttributes II.23.1.4
+	flags: u16,
+	pub name: StringIndex,
+	pub ty: TypeDefOrRef,
+}
+
+impl Event {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u16 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let ty = TypeDefOrRef::parse(header, data, offset)?;
+		Ok(Event { flags, name, ty })
 	}
 }
 
