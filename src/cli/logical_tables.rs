@@ -192,6 +192,10 @@ pub struct TableRows {
 	/// method return, as parameter number 0) shall be marshalled when calling
 	/// to or from unmanaged code via PInvoke dispatch.
 	pub field_marshals: Box<[FieldMarshal]>,
+	/// Security attributes, which derive from
+	/// System.Security.Permissions.SecurityAttribute (see Partition IV), can
+	/// be attached to a TypeDef, a Method, or an Assembly.
+	pub security_attributes: Box<[DeclSecutity]>,
 }
 
 impl TableRows {
@@ -215,17 +219,18 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,           METADATA_MODULE,           Module);
-		table!(type_refs,         METADATA_TYPE_REF,         TypeRef);
-		table!(type_defs,         METADATA_TYPE_DEF,         TypeDef);
-		table!(fields,            METADATA_FIELD,            Field);
-		table!(method_defs,       METADATA_METHOD_DEF,       MethodDef);
-		table!(params,            METADATA_PARAM,            Param);
-		table!(interface_impls,   METADATA_INTERFACE_IMPL,   InterfaceImpl);
-		table!(member_refs,       METADATA_MEMBER_REF,       MemberRef);
-		table!(constants,         METADATA_CONSTANT,         Constant);
-		table!(custom_attributes, METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
-		table!(field_marshals,    METADATA_FIELD_MARSHAL,    FieldMarshal);
+		table!(modules,             METADATA_MODULE,           Module);
+		table!(type_refs,           METADATA_TYPE_REF,         TypeRef);
+		table!(type_defs,           METADATA_TYPE_DEF,         TypeDef);
+		table!(fields,              METADATA_FIELD,            Field);
+		table!(method_defs,         METADATA_METHOD_DEF,       MethodDef);
+		table!(params,              METADATA_PARAM,            Param);
+		table!(interface_impls,     METADATA_INTERFACE_IMPL,   InterfaceImpl);
+		table!(member_refs,         METADATA_MEMBER_REF,       MemberRef);
+		table!(constants,           METADATA_CONSTANT,         Constant);
+		table!(custom_attributes,   METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
+		table!(field_marshals,      METADATA_FIELD_MARSHAL,    FieldMarshal);
+		table!(security_attributes, METADATA_FIELD_MARSHAL,    DeclSecutity);
 		
 		Ok(TableRows {
 			modules,
@@ -239,6 +244,7 @@ impl TableRows {
 			constants,
 			custom_attributes,
 			field_marshals,
+			security_attributes,
 		})
 	}
 }
@@ -682,6 +688,24 @@ impl FieldMarshal {
 		let parent = HasFieldMarshall::parse(header, data, offset)?;
 		let native_ty = BlobIndex::parse(header, data, offset)?;
 		Ok(FieldMarshal { parent, native_ty })
+	}
+}
+
+/// II.22.11
+#[derive(Debug, PartialEq, Clone)]
+pub struct DeclSecutity {
+	// TODO(dmi): @incomplete See table in II.22.11
+	action: u16,
+	pub parent: HasDeclSecurity,
+	pub permission_set: BlobIndex,
+}
+
+impl DeclSecutity {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let action: u16 = data.read(offset)?;
+		let parent = HasDeclSecurity::parse(header, data, offset)?;
+		let permission_set = BlobIndex::parse(header, data, offset)?;
+		Ok(DeclSecutity { action, parent, permission_set })
 	}
 }
 

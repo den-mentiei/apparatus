@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_DECLSECURITY
-// 	if (valid_mask >> METADATA_DECLSECURITY) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("DeclSecurity table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* DeclSecurity #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_CLASSLAYOUT
 // 	if (valid_mask >> METADATA_CLASSLAYOUT) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
