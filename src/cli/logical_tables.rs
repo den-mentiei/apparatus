@@ -231,6 +231,12 @@ pub struct TableRows {
 	/// name, and not much else.
 	pub properties: Box<[Property]>,
 	pub method_semantics: Box<[MethodSemantics]>,
+	/// MethodImpl tables let a compiler override the default inheritance
+	/// rules provided by the CLI. Their original use was to allow a class C,
+	/// that inherited method M from both interfaces I and J, to provide
+	/// implementations for both methods (rather than have only one slot for M
+	/// in its vtable).
+	pub method_impls: Box<[MethodImpl]>,
 }
 
 impl TableRows {
@@ -274,6 +280,7 @@ impl TableRows {
 		table!(property_maps,         METADATA_PROPERTY_MAP,     PropertyMap);
 		table!(properties,            METADATA_PROPERTY,         Property);
 		table!(method_semantics,      METADATA_METHOD_SEMANTICS, MethodSemantics);
+		table!(method_impls,          METADATA_METHOD_IMPL,      MethodImpl);
 		
 		Ok(TableRows {
 			modules,
@@ -296,6 +303,7 @@ impl TableRows {
 			property_maps,
 			properties,
 			method_semantics,
+			method_impls,
 		})
 	}
 }
@@ -901,6 +909,23 @@ impl MethodSemantics {
 		let method = MethodDefIndex::parse(header, data, offset)?;
 		let assoc = HasSemantics::parse(header, data, offset)?;
 		Ok(MethodSemantics { semantics, method, assoc })
+	}
+}
+
+/// II.22.27
+#[derive(Debug, PartialEq, Clone)]
+pub struct MethodImpl {
+	pub class: TypeDefIndex,
+	pub body: MethodDefOrRef,
+	pub decl: MethodDefOrRef,
+}
+
+impl MethodImpl {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let class = TypeDefIndex::parse(header, data, offset)?;
+		let body = MethodDefOrRef::parse(header, data, offset)?;
+		let decl = MethodDefOrRef::parse(header, data, offset)?;
+		Ok(MethodImpl { class, body, decl })
 	}
 }
 
