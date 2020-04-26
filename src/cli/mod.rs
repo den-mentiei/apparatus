@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_TYPESPEC
-// 	if (valid_mask >> METADATA_TYPESPEC) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("TypeSpec table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* TypeSpec #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_IMPLMAP
 // 	if (valid_mask >> METADATA_IMPLMAP) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

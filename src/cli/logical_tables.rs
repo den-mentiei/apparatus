@@ -238,6 +238,11 @@ pub struct TableRows {
 	/// in its vtable).
 	pub method_impls: Box<[MethodImpl]>,
 	pub module_refs: Box<[ModuleRef]>,
+	/// TypeSpec tokens can be used with any of the CIL instructions
+	/// that take a TypeDef or TypeRef token; specifically, castclass, cpobj,
+	/// initobj, isinst, ldelema, ldobj, mkrefany, newarr, refanyval, sizeof,
+	/// stobj, box, and unbox
+	pub type_specs: Box<[TypeSpec]>,
 }
 
 impl TableRows {
@@ -283,6 +288,7 @@ impl TableRows {
 		table!(method_semantics,      METADATA_METHOD_SEMANTICS, MethodSemantics);
 		table!(method_impls,          METADATA_METHOD_IMPL,      MethodImpl);
 		table!(module_refs,           METADATA_MODULE_REF,       ModuleRef);
+		table!(type_specs,            METADATA_TYPE_SPEC,        TypeSpec);
 		
 		Ok(TableRows {
 			modules,
@@ -307,6 +313,7 @@ impl TableRows {
 			method_semantics,
 			method_impls,
 			module_refs,
+			type_specs,
 		})
 	}
 }
@@ -942,6 +949,24 @@ impl ModuleRef {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let name = StringIndex::parse(header, data, offset)?;
 		Ok(ModuleRef { name })
+	}
+}
+
+/// II.22.39
+/// The TypeSpec table has just one column, which indexes the
+/// specification of a Type, stored in the Blob heap. This provides a
+/// metadata token for that Type (rather than simply an index into the
+/// Blob heap).  This is required, typically, for array operations, such
+/// as creating, or calling methods on the array class.
+#[derive(Debug, PartialEq, Clone)]
+pub struct TypeSpec {
+	pub sig: BlobIndex,
+}
+
+impl TypeSpec {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let sig = BlobIndex::parse(header, data, offset)?;
+		Ok(TypeSpec { sig })
 	}
 }
 
