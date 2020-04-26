@@ -149,43 +149,49 @@ impl Tables {
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct TableRows {
-	modules: Box<[Module]>,
-	type_refs: Box<[TypeRef]>,
+	pub modules: Box<[Module]>,
+	pub type_refs: Box<[TypeRef]>,
 	/// The first row represents the pseudo class that acts
 	/// as a parent for functions and variables define at
 	/// module scope.
-	type_defs: Box<[TypeDef]>,
+	pub type_defs: Box<[TypeDef]>,
 	/// Conceptually, each row is owned by one, and only one,
 	/// row in the type_defs table. However, the owner of any
 	/// row is not stored anywhere in the Field itself. There
 	/// is merely a "forward-pointer" from each row in the
 	/// type_defs table.
-	fields: Box<[Field]>,
+	pub fields: Box<[Field]>,
 	/// Conceptually, every row is owned by one, and only one,
 	/// row in type_defs.
-	method_defs: Box<[MethodDef]>,
+	pub method_defs: Box<[MethodDef]>,
 	/// Conceptually, every row is owned by one, and only one,
 	/// row in method_defs.
-	params: Box<[Param]>,
+	pub params: Box<[Param]>,
 	/// Records the interfaces a type implements explicitly.
-	interface_impls: Box<[InterfaceImpl]>,
+	pub interface_impls: Box<[InterfaceImpl]>,
 	/// An entry is made into the MemberRef table whenever a reference is
 	/// made in the CIL code to a method or field which is defined in another
 	/// module or assembly. (Also, an entry is made for a call to a method
 	/// with a VARARG signature, even when it is defined in the same module as
 	/// the call site.)
-	member_refs: Box<[MemberRef]>,
+	pub member_refs: Box<[MemberRef]>,
 	/// Note that Constant information does not directly influence runtime
 	/// behavior, although it is visible via Reflection (and hence can be used
 	/// to implement functionality such as that provided by
 	/// System.Enum.ToString). Compilers inspect this information, at compile
 	/// time, when importing metadata, but the value of the constant itself,
 	/// if used, becomes embedded into the CIL stream the compiler emits.
-	constants: Box<[Constant]>,
+	pub constants: Box<[Constant]>,
 	/// The column called ty is slightly misleading - it actually indexes a
 	/// constructor method - the owner of that constructor method is the Type
 	/// of the Custom Attribute.
-	custom_attributes: Box<[CustomAttribute]>,
+	pub custom_attributes: Box<[CustomAttribute]>,
+	/// The FieldMarshal table has two columns. It "links" an existing
+	/// row in the Field or Param table, to information in the Blob heap that
+	/// defines how that field or parameter (which, as usual, covers the
+	/// method return, as parameter number 0) shall be marshalled when calling
+	/// to or from unmanaged code via PInvoke dispatch.
+	pub field_marshals: Box<[FieldMarshal]>,
 }
 
 impl TableRows {
@@ -219,6 +225,7 @@ impl TableRows {
 		table!(member_refs,       METADATA_MEMBER_REF,       MemberRef);
 		table!(constants,         METADATA_CONSTANT,         Constant);
 		table!(custom_attributes, METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
+		table!(field_marshals,    METADATA_FIELD_MARSHAL,    FieldMarshal);
 		
 		Ok(TableRows {
 			modules,
@@ -231,6 +238,7 @@ impl TableRows {
 			member_refs,
 			constants,
 			custom_attributes,
+			field_marshals,
 		})
 	}
 }
@@ -662,18 +670,33 @@ impl CustomAttribute {
 	}
 }
 
+/// II.22.17
+#[derive(Debug, PartialEq, Clone)]
+pub struct FieldMarshal {
+	pub parent: HasFieldMarshall,
+	pub native_ty: BlobIndex,
+}
+
+impl FieldMarshal {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let parent = HasFieldMarshall::parse(header, data, offset)?;
+		let native_ty = BlobIndex::parse(header, data, offset)?;
+		Ok(FieldMarshal { parent, native_ty })
+	}
+}
+
 // =======================================================================================
 
 /// II.24.2.6
-// #[derive(Debug, PartialEq, Clone)]
-// pub struct TypeDef {
-// }
+#[derive(Debug, PartialEq, Clone)]
+pub struct D {
+}
 
-// impl TypeDef {
-// 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
-// 		Ok(TypeDef {  })
-// 	}
-// }
+impl D {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		Ok(D {  })
+	}
+}
 
 fn empty<T>() -> Box<[T]> {
 	Box::new([])

@@ -13,50 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_FIELDMARSHAL II.22.17
-// 	// The FieldMarshal table has two columns.  It "links" an existing
-// 	// row in the Field or Param table, to information in the Blob
-// 	// heap that defines how that field or parameter (which, as usual,
-// 	// covers the method return, as parameter number 0) shall be
-// 	// marshalled when calling to or from unmanaged code via PInvoke
-// 	// dispatch.
-// 	if (valid_mask >> METADATA_FIELDMARSHAL) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("FieldMarshal table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* FieldMarshal #{}", i);
-
-// 			// II.24.2.6
-// 			const TAG_MASK: usize = 0b1;
-// 			const FIELD: usize = 0;
-// 			const PARAM: usize = 1;
-
-// 			let max_len = max!(
-// 				table_lens[METADATA_FIELD],
-// 				table_lens[METADATA_PARAM]) as usize;
-// 			let size  = if max_len < size_for_big_index(2) { 2 } else { 4 };
-// 			let shift = log2(TAG_MASK);
-
-// 			let parent = read_idx(data, offset, size)?;
-// 			offset += size;
-
-// 			print!("  parent ");
-// 			match parent & TAG_MASK {
-// 				FIELD => print!("Field"),
-// 				PARAM => print!("Param"),
-// 				_ => Err("Invalid MEMBERREF tag.")?,
-// 			};
-// 			println!(" {:#0x}", parent >> shift);
-
-// 			let type_bi = read_idx(data, offset, bi_size)?;
-// 			offset += bi_size;
-// 			println!("  native type: {:#0x}", type_bi);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_DECLSECURITY
 // 	if (valid_mask >> METADATA_DECLSECURITY) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
