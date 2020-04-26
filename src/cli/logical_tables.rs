@@ -230,6 +230,7 @@ pub struct TableRows {
 	/// gather together collections of methods defined on a class, give them a
 	/// name, and not much else.
 	pub properties: Box<[Property]>,
+	pub method_semantics: Box<[MethodSemantics]>,
 }
 
 impl TableRows {
@@ -272,6 +273,7 @@ impl TableRows {
 		table!(events,                METADATA_EVENT,            Event);
 		table!(property_maps,         METADATA_PROPERTY_MAP,     PropertyMap);
 		table!(properties,            METADATA_PROPERTY,         Property);
+		table!(method_semantics,      METADATA_METHOD_SEMANTICS, MethodSemantics);
 		
 		Ok(TableRows {
 			modules,
@@ -293,6 +295,7 @@ impl TableRows {
 			events,
 			property_maps,
 			properties,
+			method_semantics,
 		})
 	}
 }
@@ -880,6 +883,24 @@ impl Property {
 		let name = StringIndex::parse(header, data, offset)?;
 		let ty = BlobIndex::parse(header, data, offset)?;
 		Ok(Property { flags, name, ty })
+	}
+}
+
+/// II.22.28
+#[derive(Debug, PartialEq, Clone)]
+pub struct MethodSemantics {
+	// TODO(dmi): @incomplete See MethodSemanticsAttributes II.23.1.12
+	semantics: u16,
+	pub method: MethodDefIndex,
+	pub assoc: HasSemantics,
+}
+
+impl MethodSemantics {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let semantics: u16 = data.read(offset)?;
+		let method = MethodDefIndex::parse(header, data, offset)?;
+		let assoc = HasSemantics::parse(header, data, offset)?;
+		Ok(MethodSemantics { semantics, method, assoc })
 	}
 }
 

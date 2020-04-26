@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_METHODSEMANTICS
-// 	if (valid_mask >> METADATA_METHODSEMANTICS) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("MethodSemantics table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* MethodSemantics #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_METHODIMPL
 // 	if (valid_mask >> METADATA_METHODIMPL) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
