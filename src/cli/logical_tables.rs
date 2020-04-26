@@ -148,10 +148,58 @@ impl Tables {
 }
 
 #[derive(Debug, PartialEq, Clone, Default)]
-pub struct StringIndex(u32);
+pub struct TableRows {
+	modules: Box<[Module]>,
+	type_refs: Box<[TypeRef]>,
+	/// The first row represents the pseudo class that acts
+	/// as a parent for functions and variables define at
+	/// module scope.
+	type_defs: Box<[TypeDef]>,
+	/// Conceptually, each row is owned by one, and only one,
+	/// row in the type_defs table. However, the owner of any
+	/// row is not stored anywhere in the Field itself. There
+	/// is merely a "forward-pointer" from each row in the
+	/// type_defs table.
+	fields: Box<[Field]>,
+}
+
+impl TableRows {
+	pub fn parse(header: &Tables, data: &[u8]) -> Result<Self> {
+		let mut offset = &mut 0;
+
+		macro_rules! table {
+			($table:ident, $id:ident, $type:ty) => {
+				let $table = if header.has_table($id) {
+					let n = header.lens[$id] as usize;
+					let mut result = Vec::with_capacity(n);
+
+					for i in 0..n {
+						result.push(<$type>::parse(header, data, offset)?);
+					}
+
+					result.into_boxed_slice()
+				} else {
+					empty()
+				};
+			};
+		}
+
+		table!(modules,   METADATA_MODULE,   Module);
+		table!(type_refs, METADATA_TYPE_REF, TypeRef);
+		table!(type_defs, METADATA_TYPE_DEF, TypeDef);
+		table!(fields,    METADATA_FIELD,    Field);
+		
+		Ok(TableRows {
+			modules,
+			type_refs,
+			type_defs,
+			fields,
+		})
+	}
+}
 
 #[derive(Debug, PartialEq, Clone, Default)]
-pub struct GuidIndex(u32);
+pub struct StringIndex(u32);
 
 impl StringIndex {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
@@ -163,6 +211,9 @@ impl StringIndex {
 	}
 }
 
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct GuidIndex(u32);
+
 impl GuidIndex {
 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 		let i = match header.guid_index_size {
@@ -170,6 +221,16 @@ impl GuidIndex {
 			IndexSize::U32 => GuidIndex(data.read::<u32>(offset)? as u32),
 		};
 		Ok(i)
+	}
+}
+
+#[derive(Debug, PartialEq, Clone, Default)]
+pub struct BlobIndex(u32);
+
+// TODO(dmi): @incomplete Not sure if blob index can have different size.
+impl BlobIndex {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		Ok(BlobIndex(data.read::<u16>(offset)? as u32))
 	}
 }
 
@@ -324,49 +385,6 @@ coded_index!(ResolutionScope, 2,
 	(AssemblyRef 2, METADATA_ASSEMBLY_REF)
 	(TypeRef     3, METADATA_TYPE_REF));
 
-#[derive(Debug, PartialEq, Clone, Default)]
-pub struct TableRows {
-	modules: Box<[Module]>,
-	type_refs: Box<[TypeRef]>,
-	/// The first row represents the pseudo class that acts
-	/// as a parent for functions and variables define at
-	/// module scope.
-	type_defs: Box<[TypeDef]>,
-}
-
-impl TableRows {
-	pub fn parse(header: &Tables, data: &[u8]) -> Result<Self> {
-		let mut offset = &mut 0;
-
-		macro_rules! table {
-			($table:ident, $id:ident, $type:ty) => {
-				let $table = if header.has_table($id) {
-					let n = header.lens[$id] as usize;
-					let mut result = Vec::with_capacity(n);
-
-					for i in 0..n {
-						result.push(<$type>::parse(header, data, offset)?);
-					}
-
-					result.into_boxed_slice()
-				} else {
-					empty()
-				};
-			};
-		}
-
-		table!(modules,   METADATA_MODULE,   Module);
-		table!(type_refs, METADATA_TYPE_REF, TypeRef);
-		table!(type_defs, METADATA_TYPE_DEF, TypeDef);
-		
-		Ok(TableRows {
-			modules,
-			type_refs,
-			type_defs,
-		})
-	}
-}
-
 /// II.22.30
 #[derive(Debug, PartialEq, Clone)]
 pub struct Module {
@@ -459,6 +477,24 @@ impl TypeDef {
 	}
 }
 
+/// II.22.15
+#[derive(Debug, PartialEq, Clone)]
+pub struct Field {
+	// TODO(dmi): @incomplete See FieldAttributes II.23.1.5
+	flags: u16,
+	pub name: StringIndex,
+	pub signature: BlobIndex,
+}
+
+impl Field {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u16 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let signature = BlobIndex::parse(header, data, offset)?;
+		Ok(Field { flags, name, signature })
+	}
+}
+
 // =======================================================================================
 
 /// II.24.2.6
@@ -467,7 +503,7 @@ impl TypeDef {
 // }
 
 // impl TypeDef {
-// 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<TypeDef> {
+// 	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
 // 		Ok(TypeDef {  })
 // 	}
 // }
