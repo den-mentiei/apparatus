@@ -256,6 +256,7 @@ pub struct TableRows {
 	/// II.16). The RVA column is the relative virtual address of the data in
 	/// the PE file (II.16.3).
 	pub field_rvas: Box<[FieldRVA]>,
+	pub assemblies: Box<[Assembly]>,
 }
 
 impl TableRows {
@@ -304,6 +305,7 @@ impl TableRows {
 		table!(type_specs,            METADATA_TYPE_SPEC,        TypeSpec);
 		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
 		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
+		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
 		
 		Ok(TableRows {
 			modules,
@@ -331,6 +333,7 @@ impl TableRows {
 			type_specs,
 			impl_maps,
 			field_rvas,
+			assemblies,
 		})
 	}
 }
@@ -1020,6 +1023,65 @@ impl FieldRVA {
 		let rva: u32 = data.read(offset)?;
 		let field = FieldIndex::parse(header, data, offset)?;
 		Ok(FieldRVA { rva, field })
+	}
+}
+
+/// II.22.2
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum HashAlgo {
+	MD5,
+	SHA1,
+}
+
+impl HashAlgo {
+	fn parse(data: &[u8], offset: &mut usize) -> Result<Self> {
+		let algo: u32 = data.read(offset)?;
+		match algo {
+			0x8003 => Ok(HashAlgo::MD5),
+			0x8004 => Ok(HashAlgo::SHA1),
+			_ => Err("Unknown hash algorithm.")?,
+		}
+	}
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Assembly {
+	pub hash_algo: HashAlgo,
+	pub major_version: u16,
+	pub minor_version: u16,
+	pub build_number: u16,
+	pub revision_number: u16,
+	// TODO(dmi): @incomplete See AssemblyFlags II.23.1.2
+	flags: u32,
+	pub pub_key: BlobIndex,
+	pub name: StringIndex,
+	pub culture: StringIndex,
+}
+
+impl Assembly {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let hash_algo = HashAlgo::parse(data, offset)?;
+		let major_version: u16 = data.read(offset)?;
+		let minor_version: u16 = data.read(offset)?;
+		let build_number: u16 = data.read(offset)?;
+		let revision_number: u16 = data.read(offset)?;
+		let flags: u32 = data.read(offset)?;
+		let pub_key = BlobIndex::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let culture = StringIndex::parse(header, data, offset)?;
+		
+		Ok(Assembly {
+			hash_algo,
+			major_version,
+			minor_version,
+			build_number,
+			revision_number,
+			flags,
+			pub_key,
+			name,
+			culture,
+		})
 	}
 }
 
