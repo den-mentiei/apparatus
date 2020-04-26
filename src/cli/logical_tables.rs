@@ -182,6 +182,10 @@ pub struct TableRows {
 	/// time, when importing metadata, but the value of the constant itself,
 	/// if used, becomes embedded into the CIL stream the compiler emits.
 	constants: Box<[Constant]>,
+	/// The column called ty is slightly misleading - it actually indexes a
+	/// constructor method - the owner of that constructor method is the Type
+	/// of the Custom Attribute.
+	custom_attributes: Box<[CustomAttribute]>,
 }
 
 impl TableRows {
@@ -205,15 +209,16 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,         METADATA_MODULE,         Module);
-		table!(type_refs,       METADATA_TYPE_REF,       TypeRef);
-		table!(type_defs,       METADATA_TYPE_DEF,       TypeDef);
-		table!(fields,          METADATA_FIELD,          Field);
-		table!(method_defs,     METADATA_METHOD_DEF,     MethodDef);
-		table!(params,          METADATA_PARAM,          Param);
-		table!(interface_impls, METADATA_INTERFACE_IMPL, InterfaceImpl);
-		table!(member_refs,     METADATA_MEMBER_REF,     MemberRef);
-		table!(constants,       METADATA_CONSTANT,       Constant);
+		table!(modules,           METADATA_MODULE,           Module);
+		table!(type_refs,         METADATA_TYPE_REF,         TypeRef);
+		table!(type_defs,         METADATA_TYPE_DEF,         TypeDef);
+		table!(fields,            METADATA_FIELD,            Field);
+		table!(method_defs,       METADATA_METHOD_DEF,       MethodDef);
+		table!(params,            METADATA_PARAM,            Param);
+		table!(interface_impls,   METADATA_INTERFACE_IMPL,   InterfaceImpl);
+		table!(member_refs,       METADATA_MEMBER_REF,       MemberRef);
+		table!(constants,         METADATA_CONSTANT,         Constant);
+		table!(custom_attributes, METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
 		
 		Ok(TableRows {
 			modules,
@@ -225,6 +230,7 @@ impl TableRows {
 			interface_impls,
 			member_refs,
 			constants,
+			custom_attributes,
 		})
 	}
 }
@@ -636,6 +642,23 @@ impl Constant {
 		let parent = HasConstant::parse(header, data, offset)?;
 		let value = BlobIndex::parse(header, data, offset)?;
 		Ok(Constant { ty, parent, value })
+	}
+}
+
+/// II.22.10
+#[derive(Debug, PartialEq, Clone)]
+pub struct CustomAttribute {
+	pub parent: HasCustomAttribute,
+	pub ty: CustomAttributeType,
+	pub value: BlobIndex,
+}
+
+impl CustomAttribute {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let parent = HasCustomAttribute::parse(header, data, offset)?;
+		let ty = CustomAttributeType::parse(header, data, offset)?;
+		let value = BlobIndex::parse(header, data, offset)?;
+		Ok(CustomAttribute { parent, ty, value })
 	}
 }
 
