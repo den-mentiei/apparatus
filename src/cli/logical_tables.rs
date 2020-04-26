@@ -237,6 +237,7 @@ pub struct TableRows {
 	/// implementations for both methods (rather than have only one slot for M
 	/// in its vtable).
 	pub method_impls: Box<[MethodImpl]>,
+	pub module_refs: Box<[ModuleRef]>,
 }
 
 impl TableRows {
@@ -281,6 +282,7 @@ impl TableRows {
 		table!(properties,            METADATA_PROPERTY,         Property);
 		table!(method_semantics,      METADATA_METHOD_SEMANTICS, MethodSemantics);
 		table!(method_impls,          METADATA_METHOD_IMPL,      MethodImpl);
+		table!(module_refs,           METADATA_MODULE_REF,       ModuleRef);
 		
 		Ok(TableRows {
 			modules,
@@ -304,6 +306,7 @@ impl TableRows {
 			properties,
 			method_semantics,
 			method_impls,
+			module_refs,
 		})
 	}
 }
@@ -926,6 +929,19 @@ impl MethodImpl {
 		let body = MethodDefOrRef::parse(header, data, offset)?;
 		let decl = MethodDefOrRef::parse(header, data, offset)?;
 		Ok(MethodImpl { class, body, decl })
+	}
+}
+
+/// II.22.31
+#[derive(Debug, PartialEq, Clone)]
+pub struct ModuleRef {
+	pub name: StringIndex,
+}
+
+impl ModuleRef {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let name = StringIndex::parse(header, data, offset)?;
+		Ok(ModuleRef { name })
 	}
 }
 
