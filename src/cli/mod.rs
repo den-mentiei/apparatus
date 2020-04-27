@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_NESTEDCLASS
-// 	if (valid_mask >> METADATA_NESTEDCLASS) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("NestedClass table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* NestedClass #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_GENERICPARAM
 // 	if (valid_mask >> METADATA_GENERICPARAM) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

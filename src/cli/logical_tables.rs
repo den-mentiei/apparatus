@@ -274,6 +274,8 @@ pub struct TableRows {
 	/// AssemblyRef indicating the Assembly the type may now be found in.
 	pub exported_types: Box<[ExportedType]>,
 	pub manifest_resources: Box<[ManifestResource]>,
+	/// NestedClass is defined as lexically "inside" the text of its enclosing Type.
+	pub nested_classes: Box<[NestedClass]>,
 }
 
 impl TableRows {
@@ -327,6 +329,7 @@ impl TableRows {
 		table!(files,                 METADATA_FILE,              File);
 		table!(exported_types,        METADATA_EXPORTED_TYPE,     ExportedType);
 		table!(manifest_resources,    METADATA_MANIFEST_RESOURCE, ManifestResource);
+		table!(nested_classes,        METADATA_NESTED_CLASS,      NestedClass);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -376,6 +379,7 @@ impl TableRows {
 			files,
 			exported_types,
 			manifest_resources,
+			nested_classes,
 		})
 	}
 }
@@ -1247,6 +1251,21 @@ impl ManifestResource {
 		let name = StringIndex::parse(header, data, offset)?;
 		let implementation = Implementation::parse(header, data, offset)?;
 		Ok(ManifestResource { offset: r_offset, flags, name, implementation })
+	}
+}
+
+/// II.22.32
+#[derive(Debug, PartialEq, Clone)]
+pub struct NestedClass {
+	pub nested: TypeDefIndex,
+	pub enclosing: TypeDefIndex,
+}
+
+impl NestedClass {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let nested = TypeDefIndex::parse(header, data, offset)?;
+		let enclosing = TypeDefIndex::parse(header, data, offset)?;
+		Ok(NestedClass { nested, enclosing })
 	}
 }
 
