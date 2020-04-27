@@ -277,6 +277,11 @@ pub struct TableRows {
 	/// NestedClass is defined as lexically "inside" the text of its enclosing Type.
 	pub nested_classes: Box<[NestedClass]>,
 	pub generic_params: Box<[GenericParam]>,
+	/// Records the signature of an instantiated generic method.
+	/// Each unique instantiation of a generic method (i.e., a
+	/// combination of Method and Instantiation) shall be represented
+	/// by a single row in the table.
+	pub method_specs: Box<[MethodSpec]>,
 }
 
 impl TableRows {
@@ -332,6 +337,7 @@ impl TableRows {
 		table!(manifest_resources,    METADATA_MANIFEST_RESOURCE, ManifestResource);
 		table!(nested_classes,        METADATA_NESTED_CLASS,      NestedClass);
 		table!(generic_params,        METADATA_GENERIC_PARAM,     GenericParam);
+		table!(method_specs,          METADATA_METHOD_SPEC,       MethodSpec);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -383,6 +389,7 @@ impl TableRows {
 			manifest_resources,
 			nested_classes,
 			generic_params,
+			method_specs,
 		})
 	}
 }
@@ -1297,6 +1304,22 @@ impl GenericParam {
 		let owner = TypeOrMethodDef::parse(header, data, offset)?;
 		let name = StringIndex::parse(header, data, offset)?;
 		Ok(GenericParam { number, flags, owner, name })
+	}
+}
+
+/// II.22.29
+#[derive(Debug, PartialEq, Clone)]
+pub struct MethodSpec {
+	pub method: MethodDefOrRef,
+	/// Signature of this instantiation.
+	pub inst: BlobIndex,
+}
+
+impl MethodSpec {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let method = MethodDefOrRef::parse(header, data, offset)?;
+		let inst = BlobIndex::parse(header, data, offset)?;
+		Ok(MethodSpec { method, inst })
 	}
 }
 

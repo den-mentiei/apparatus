@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_METHODSPEC
-// 	if (valid_mask >> METADATA_METHODSPEC) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("MethodSpec table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* MethodSpec #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_GENERICPARAMCONSTRAINT
 // 	if (valid_mask >> METADATA_GENERICPARAMCONSTRAINT) & 1 == 1 {
 // 		let len  = row_lens[t * 4];
