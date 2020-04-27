@@ -259,6 +259,20 @@ pub struct TableRows {
 	pub assemblies: Box<[Assembly]>,
 	pub assembly_refs: Box<[AssemblyRef]>,
 	pub files: Box<[File]>,
+	/// It holds a row for each type:
+	/// - Defined within other modules of this Assembly; that is exported out of
+	/// this Assembly.  In essence, it stores TypeDef row numbers of all types
+	/// that are marked public in other modules that this Assembly comprises.
+	/// The actual target row in a TypeDef table is given by the combination
+	/// of TypeDefId (in effect, row number) and Implementation (in effect,
+	/// the module that holds the target TypeDef table). Note that this is the
+	/// only occurrence in metadata of foreign tokens; that is, token values
+	/// that have a meaning in another module. (A regular token value is an
+	/// index into a table in the current module); OR
+	/// - Originally defined in this Assembly but now moved to another
+	/// Assembly. Flags must have IsTypeForwarder set and Implementation is an
+	/// AssemblyRef indicating the Assembly the type may now be found in.
+	pub exported_types: Box<[ExportedType]>,
 }
 
 impl TableRows {
@@ -310,6 +324,7 @@ impl TableRows {
 		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
 		table!(assembly_refs,         METADATA_ASSEMBLY_REF,     AssemblyRef);
 		table!(files,                 METADATA_FILE,             File);
+		table!(exported_types,        METADATA_EXPORTED_TYPE,    ExportedType);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -357,6 +372,7 @@ impl TableRows {
 			assemblies,
 			assembly_refs,
 			files,
+			exported_types,
 		})
 	}
 }
@@ -1166,6 +1182,45 @@ impl File {
 		let name = StringIndex::parse(header, data, offset)?;
 		let hash = BlobIndex::parse(header, data, offset)?;
 		Ok(File { flags, name, hash  })
+	}
+}
+
+/// II.22.14
+/// The full name of the type need not be stored directly. Instead, it
+/// can be split into two parts at any included "." (although typically
+/// this is done at the last "." in the full name). The part preceding the
+/// "." is stored as the TypeNamespace and that following the "." is
+/// stored as the TypeName. If there is no "." in the full name, then the
+/// TypeNamespace shall be the index of the empty string.
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExportedType {
+	// TODO(dmi): @incomplete See TypeAttributes II.23.1.15
+	flags: u32,
+	/// This column is used as a hint only. If the entry in the target TypeDef
+	/// table matches the TypeName and TypeNamespace entries in this table,
+	/// resolution has succeeded.  But if there is a mismatch, the CLI shall
+	/// fall back to a search of the target TypeDef table. Ignored and should
+	/// be zero if Flags has IsTypeForwarder set.
+	pub type_def_id: TypeDefIndex,
+	pub name: StringIndex,
+	pub namespace: StringIndex,
+	pub implementation: Implementation,
+}
+
+impl ExportedType {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u32 = data.read(offset)?;
+		let type_def_id = TypeDefIndex::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let namespace = StringIndex::parse(header, data, offset)?;
+		let implementation = Implementation::parse(header, data, offset)?;
+		Ok(ExportedType {
+			flags,
+			type_def_id,
+			name,
+			namespace,
+			implementation,
+		})
 	}
 }
 
