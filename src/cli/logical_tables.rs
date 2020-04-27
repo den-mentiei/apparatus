@@ -257,6 +257,7 @@ pub struct TableRows {
 	/// the PE file (II.16.3).
 	pub field_rvas: Box<[FieldRVA]>,
 	pub assemblies: Box<[Assembly]>,
+	pub assembly_refs: Box<[AssemblyRef]>,
 }
 
 impl TableRows {
@@ -306,6 +307,7 @@ impl TableRows {
 		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
 		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
 		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
+		table!(assembly_refs,         METADATA_ASSEMBLY_REF,     AssemblyRef);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -343,6 +345,7 @@ impl TableRows {
 			impl_maps,
 			field_rvas,
 			assemblies,
+			assembly_refs,
 		})
 	}
 }
@@ -1090,6 +1093,49 @@ impl Assembly {
 			pub_key,
 			name,
 			culture,
+		})
+	}
+}
+
+/// II.22.5
+#[derive(Debug, PartialEq, Clone)]
+pub struct AssemblyRef {
+	pub major_version: u16,
+	pub minor_version: u16,
+	pub build_number: u16,
+	pub revision_number: u16,
+	// TODO(dmi): @incomplete See AssemblyFlags II.23.1.2
+	flags: u32,
+	/// Indicating the public key or token that identifies the author
+	/// of this Assembly.
+	pub pub_key_or_token: BlobIndex,
+	pub name: StringIndex,
+	pub culture: StringIndex,
+	pub hash: BlobIndex,
+}
+
+impl AssemblyRef {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let major_version: u16 = data.read(offset)?;
+		let minor_version: u16 = data.read(offset)?;
+		let build_number: u16 = data.read(offset)?;
+		let revision_number: u16 = data.read(offset)?;
+		let flags: u32 = data.read(offset)?;
+		let pub_key_or_token = BlobIndex::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let culture = StringIndex::parse(header, data, offset)?;
+		let hash = BlobIndex::parse(header, data, offset)?;
+
+		Ok(AssemblyRef {
+			major_version,
+			minor_version,
+			build_number,
+			revision_number,
+			flags,
+			pub_key_or_token,
+			name,
+			culture,
+			hash,
 		})
 	}
 }
