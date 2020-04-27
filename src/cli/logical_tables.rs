@@ -60,8 +60,8 @@ const METADATA_ASSEMBLY:                 usize = 0x20;
 const METADATA_ASSEMBLY_PROCESSOR:       usize = 0x21;
 const METADATA_ASSEMBLY_OS:              usize = 0x22;
 const METADATA_ASSEMBLY_REF:             usize = 0x23;
-const METADATA_ASSEMBLY_REFPROCESSOR:    usize = 0x24;
-const METADATA_ASSEMBLY_REFOS:           usize = 0x25;
+const METADATA_ASSEMBLY_REF_PROCESSOR:   usize = 0x24;
+const METADATA_ASSEMBLY_REF_OS:          usize = 0x25;
 const METADATA_FILE:                     usize = 0x26;
 const METADATA_EXPORTED_TYPE:            usize = 0x27;
 const METADATA_MANIFEST_RESOURCE:        usize = 0x28;
@@ -258,6 +258,7 @@ pub struct TableRows {
 	pub field_rvas: Box<[FieldRVA]>,
 	pub assemblies: Box<[Assembly]>,
 	pub assembly_refs: Box<[AssemblyRef]>,
+	pub files: Box<[File]>,
 }
 
 impl TableRows {
@@ -308,6 +309,7 @@ impl TableRows {
 		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
 		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
 		table!(assembly_refs,         METADATA_ASSEMBLY_REF,     AssemblyRef);
+		table!(files,                 METADATA_FILE,             File);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -316,6 +318,14 @@ impl TableRows {
 		// II.22.3
 		if header.has_table(METADATA_ASSEMBLY_OS) {
 			Err("AssemblyOS should not be emitted into any PE file.")?;
+		}
+		// II.22.7
+		if header.has_table(METADATA_ASSEMBLY_REF_PROCESSOR) {
+			Err("AssemblyRefProcessor should not be emitted into any PE file.")?;
+		}
+		// II.22.6
+		if header.has_table(METADATA_ASSEMBLY_REF_OS) {
+			Err("AssemblyRefOS should not be emitted into any PE file.")?;
 		}
 		
 		Ok(TableRows {
@@ -346,6 +356,7 @@ impl TableRows {
 			field_rvas,
 			assemblies,
 			assembly_refs,
+			files,
 		})
 	}
 }
@@ -1137,6 +1148,24 @@ impl AssemblyRef {
 			culture,
 			hash,
 		})
+	}
+}
+
+/// II.22.19
+#[derive(Debug, PartialEq, Clone)]
+pub struct File {
+	// TODO(dmi): @incomplete See FileAttributes II.23.1.6
+	flags: u32,
+	pub name: StringIndex,
+	pub hash: BlobIndex,
+}
+
+impl File {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let flags: u32 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let hash = BlobIndex::parse(header, data, offset)?;
+		Ok(File { flags, name, hash  })
 	}
 }
 
