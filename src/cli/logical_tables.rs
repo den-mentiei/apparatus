@@ -273,6 +273,7 @@ pub struct TableRows {
 	/// Assembly. Flags must have IsTypeForwarder set and Implementation is an
 	/// AssemblyRef indicating the Assembly the type may now be found in.
 	pub exported_types: Box<[ExportedType]>,
+	pub manifest_resources: Box<[ManifestResource]>,
 }
 
 impl TableRows {
@@ -296,35 +297,36 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,               METADATA_MODULE,           Module);
-		table!(type_refs,             METADATA_TYPE_REF,         TypeRef);
-		table!(type_defs,             METADATA_TYPE_DEF,         TypeDef);
-		table!(fields,                METADATA_FIELD,            Field);
-		table!(method_defs,           METADATA_METHOD_DEF,       MethodDef);
-		table!(params,                METADATA_PARAM,            Param);
-		table!(interface_impls,       METADATA_INTERFACE_IMPL,   InterfaceImpl);
-		table!(member_refs,           METADATA_MEMBER_REF,       MemberRef);
-		table!(constants,             METADATA_CONSTANT,         Constant);
-		table!(custom_attributes,     METADATA_CUSTOM_ATTRIBUTE, CustomAttribute);
-		table!(field_marshals,        METADATA_FIELD_MARSHAL,    FieldMarshal);
-		table!(security_attributes,   METADATA_FIELD_MARSHAL,    DeclSecutity);
-		table!(class_layouts,         METADATA_CLASS_LAYOUT,     ClassLayout);
-		table!(field_layouts,         METADATA_FIELD_LAYOUT,     FieldLayout);
-		table!(standalone_signatures, METADATA_STANDALONE_SIG,   StandAloneSig);
-		table!(event_maps,            METADATA_EVENT_MAP,        EventMap);
-		table!(events,                METADATA_EVENT,            Event);
-		table!(property_maps,         METADATA_PROPERTY_MAP,     PropertyMap);
-		table!(properties,            METADATA_PROPERTY,         Property);
-		table!(method_semantics,      METADATA_METHOD_SEMANTICS, MethodSemantics);
-		table!(method_impls,          METADATA_METHOD_IMPL,      MethodImpl);
-		table!(module_refs,           METADATA_MODULE_REF,       ModuleRef);
-		table!(type_specs,            METADATA_TYPE_SPEC,        TypeSpec);
-		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
-		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
-		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
-		table!(assembly_refs,         METADATA_ASSEMBLY_REF,     AssemblyRef);
-		table!(files,                 METADATA_FILE,             File);
-		table!(exported_types,        METADATA_EXPORTED_TYPE,    ExportedType);
+		table!(modules,               METADATA_MODULE,            Module);
+		table!(type_refs,             METADATA_TYPE_REF,          TypeRef);
+		table!(type_defs,             METADATA_TYPE_DEF,          TypeDef);
+		table!(fields,                METADATA_FIELD,             Field);
+		table!(method_defs,           METADATA_METHOD_DEF,        MethodDef);
+		table!(params,                METADATA_PARAM,             Param);
+		table!(interface_impls,       METADATA_INTERFACE_IMPL,    InterfaceImpl);
+		table!(member_refs,           METADATA_MEMBER_REF,        MemberRef);
+		table!(constants,             METADATA_CONSTANT,          Constant);
+		table!(custom_attributes,     METADATA_CUSTOM_ATTRIBUTE,  CustomAttribute);
+		table!(field_marshals,        METADATA_FIELD_MARSHAL,     FieldMarshal);
+		table!(security_attributes,   METADATA_FIELD_MARSHAL,     DeclSecutity);
+		table!(class_layouts,         METADATA_CLASS_LAYOUT,      ClassLayout);
+		table!(field_layouts,         METADATA_FIELD_LAYOUT,      FieldLayout);
+		table!(standalone_signatures, METADATA_STANDALONE_SIG,    StandAloneSig);
+		table!(event_maps,            METADATA_EVENT_MAP,         EventMap);
+		table!(events,                METADATA_EVENT,             Event);
+		table!(property_maps,         METADATA_PROPERTY_MAP,      PropertyMap);
+		table!(properties,            METADATA_PROPERTY,          Property);
+		table!(method_semantics,      METADATA_METHOD_SEMANTICS,  MethodSemantics);
+		table!(method_impls,          METADATA_METHOD_IMPL,       MethodImpl);
+		table!(module_refs,           METADATA_MODULE_REF,        ModuleRef);
+		table!(type_specs,            METADATA_TYPE_SPEC,         TypeSpec);
+		table!(impl_maps,             METADATA_IMPL_MAP,          ImplMap);
+		table!(field_rvas,            METADATA_FIELD_RVA,         FieldRVA);
+		table!(assemblies,            METADATA_ASSEMBLY,          Assembly);
+		table!(assembly_refs,         METADATA_ASSEMBLY_REF,      AssemblyRef);
+		table!(files,                 METADATA_FILE,              File);
+		table!(exported_types,        METADATA_EXPORTED_TYPE,     ExportedType);
+		table!(manifest_resources,    METADATA_MANIFEST_RESOURCE, ManifestResource);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -373,6 +375,7 @@ impl TableRows {
 			assembly_refs,
 			files,
 			exported_types,
+			manifest_resources,
 		})
 	}
 }
@@ -1221,6 +1224,29 @@ impl ExportedType {
 			namespace,
 			implementation,
 		})
+	}
+}
+
+/// II.22.24
+#[derive(Debug, PartialEq, Clone)]
+pub struct ManifestResource {
+	/// Specifies the byte offset within the referenced file at which
+	/// this resource record begins.
+	pub offset: u32,
+	// TODO(dmi): @incomplete See ManifestResourceAttributes II23.1.9
+	flags: u32,
+	pub name: StringIndex,
+	/// Specifies which file holds this resource.
+	pub implementation: Implementation,
+}
+
+impl ManifestResource {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let r_offset: u32 = data.read(offset)?;
+		let flags: u32 = data.read(offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		let implementation = Implementation::parse(header, data, offset)?;
+		Ok(ManifestResource { offset: r_offset, flags, name, implementation })
 	}
 }
 
