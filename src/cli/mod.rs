@@ -13,18 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_GENERICPARAM
-// 	if (valid_mask >> METADATA_GENERICPARAM) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("GenericParam table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* GenericParam #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_METHODSPEC
 // 	if (valid_mask >> METADATA_METHODSPEC) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

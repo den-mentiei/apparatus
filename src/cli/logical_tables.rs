@@ -276,6 +276,7 @@ pub struct TableRows {
 	pub manifest_resources: Box<[ManifestResource]>,
 	/// NestedClass is defined as lexically "inside" the text of its enclosing Type.
 	pub nested_classes: Box<[NestedClass]>,
+	pub generic_params: Box<[GenericParam]>,
 }
 
 impl TableRows {
@@ -330,6 +331,7 @@ impl TableRows {
 		table!(exported_types,        METADATA_EXPORTED_TYPE,     ExportedType);
 		table!(manifest_resources,    METADATA_MANIFEST_RESOURCE, ManifestResource);
 		table!(nested_classes,        METADATA_NESTED_CLASS,      NestedClass);
+		table!(generic_params,        METADATA_GENERIC_PARAM,     GenericParam);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -380,6 +382,7 @@ impl TableRows {
 			exported_types,
 			manifest_resources,
 			nested_classes,
+			generic_params,
 		})
 	}
 }
@@ -575,6 +578,10 @@ coded_index!(ResolutionScope, 2,
 	(ModuleRef   1, METADATA_MODULE_REF)
 	(AssemblyRef 2, METADATA_ASSEMBLY_REF)
 	(TypeRef     3, METADATA_TYPE_REF));
+
+coded_index!(TypeOrMethodDef, 1,
+	(TypeDef   0, METADATA_TYPE_DEF)
+	(MethodDef 1, METADATA_METHOD_DEF));
 
 /// II.22.30
 #[derive(Debug, PartialEq, Clone)]
@@ -1266,6 +1273,30 @@ impl NestedClass {
 		let nested = TypeDefIndex::parse(header, data, offset)?;
 		let enclosing = TypeDefIndex::parse(header, data, offset)?;
 		Ok(NestedClass { nested, enclosing })
+	}
+}
+
+/// II.22.20
+#[derive(Debug, PartialEq, Clone)]
+pub struct GenericParam {
+	/// Index of the generic parameter, numbered left-to-right, from
+	/// zero.
+	pub number: u16,
+	// TODO(dmi): @incomplete See GenericParamAttributes II.23.1.7
+	flags: u16,
+	pub owner: TypeOrMethodDef,
+	/// This is purely descriptive and is used only by source language
+	/// compilers and by Reflection.
+	pub name: StringIndex,
+}
+
+impl GenericParam {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let number: u16 = data.read(offset)?;
+		let flags: u16 = data.read(offset)?;
+		let owner = TypeOrMethodDef::parse(header, data, offset)?;
+		let name = StringIndex::parse(header, data, offset)?;
+		Ok(GenericParam { number, flags, owner, name })
 	}
 }
 
