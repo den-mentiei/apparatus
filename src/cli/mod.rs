@@ -13,30 +13,6 @@ pub use self::strings::*;
 mod user_strings;
 pub use self::user_strings::*;
 
-// 	// METADATA_ASSEMBLYPROCESSOR
-// 	if (valid_mask >> METADATA_ASSEMBLYPROCESSOR) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("AssemblyProcessor table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* AssemblyProcessor #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
-// 	// METADATA_ASSEMBLYOS
-// 	if (valid_mask >> METADATA_ASSEMBLYOS) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("AssemblyOS table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* AssemblyOS #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
 // 	// METADATA_ASSEMBLYREF II.22.5
 // 	if (valid_mask >> METADATA_ASSEMBLYREF) & 1 == 1 {
 // 		let len  = row_lens[t * 4];

@@ -306,6 +306,15 @@ impl TableRows {
 		table!(impl_maps,             METADATA_IMPL_MAP,         ImplMap);
 		table!(field_rvas,            METADATA_FIELD_RVA,        FieldRVA);
 		table!(assemblies,            METADATA_ASSEMBLY,         Assembly);
+
+		// II.22.4
+		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
+			Err("AssemblyProcessor should not be emitted into any PE file.")?;
+		}
+		// II.22.3
+		if header.has_table(METADATA_ASSEMBLY_OS) {
+			Err("AssemblyOS should not be emitted into any PE file.")?;
+		}
 		
 		Ok(TableRows {
 			modules,
