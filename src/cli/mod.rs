@@ -12,29 +12,3 @@ pub use self::strings::*;
 
 mod user_strings;
 pub use self::user_strings::*;
-
-// 	// METADATA_GENERICPARAMCONSTRAINT
-// 	if (valid_mask >> METADATA_GENERICPARAMCONSTRAINT) & 1 == 1 {
-// 		let len  = row_lens[t * 4];
-// 		println!("GenericParamConstraint table with {} item(s).", len);
-
-// 		for i in 0..len {
-// 			println!("* GenericParamConstraint #{}", i);
-// 		}
-
-// 		t += 1;
-// 	}
-
-// 	return Ok(());
-
-// 	fn read_idx(data: &[u8], offset: usize, index_size: usize) -> Result<usize> {
-// 		if index_size == 2 {
-// 			Ok(data[offset..].read_u16()? as usize)
-// 		} else {
-// 			Ok(data[offset..].read_u32()? as usize)
-// 		}
-// 	}
-
-// 	fn size_for_big_index(n: usize) -> usize { 1 << (16 - log2(n)) }
-// 	fn log2(x: usize) -> usize { if x == 0 { 0 } else { 64usize - x.leading_zeros() as usize } }
-// }

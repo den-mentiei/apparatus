@@ -282,6 +282,7 @@ pub struct TableRows {
 	/// combination of Method and Instantiation) shall be represented
 	/// by a single row in the table.
 	pub method_specs: Box<[MethodSpec]>,
+	pub generic_param_constraints: Box<[GenericParamConstraint]>,
 }
 
 impl TableRows {
@@ -305,39 +306,40 @@ impl TableRows {
 			};
 		}
 
-		table!(modules,               METADATA_MODULE,            Module);
-		table!(type_refs,             METADATA_TYPE_REF,          TypeRef);
-		table!(type_defs,             METADATA_TYPE_DEF,          TypeDef);
-		table!(fields,                METADATA_FIELD,             Field);
-		table!(method_defs,           METADATA_METHOD_DEF,        MethodDef);
-		table!(params,                METADATA_PARAM,             Param);
-		table!(interface_impls,       METADATA_INTERFACE_IMPL,    InterfaceImpl);
-		table!(member_refs,           METADATA_MEMBER_REF,        MemberRef);
-		table!(constants,             METADATA_CONSTANT,          Constant);
-		table!(custom_attributes,     METADATA_CUSTOM_ATTRIBUTE,  CustomAttribute);
-		table!(field_marshals,        METADATA_FIELD_MARSHAL,     FieldMarshal);
-		table!(security_attributes,   METADATA_FIELD_MARSHAL,     DeclSecutity);
-		table!(class_layouts,         METADATA_CLASS_LAYOUT,      ClassLayout);
-		table!(field_layouts,         METADATA_FIELD_LAYOUT,      FieldLayout);
-		table!(standalone_signatures, METADATA_STANDALONE_SIG,    StandAloneSig);
-		table!(event_maps,            METADATA_EVENT_MAP,         EventMap);
-		table!(events,                METADATA_EVENT,             Event);
-		table!(property_maps,         METADATA_PROPERTY_MAP,      PropertyMap);
-		table!(properties,            METADATA_PROPERTY,          Property);
-		table!(method_semantics,      METADATA_METHOD_SEMANTICS,  MethodSemantics);
-		table!(method_impls,          METADATA_METHOD_IMPL,       MethodImpl);
-		table!(module_refs,           METADATA_MODULE_REF,        ModuleRef);
-		table!(type_specs,            METADATA_TYPE_SPEC,         TypeSpec);
-		table!(impl_maps,             METADATA_IMPL_MAP,          ImplMap);
-		table!(field_rvas,            METADATA_FIELD_RVA,         FieldRVA);
-		table!(assemblies,            METADATA_ASSEMBLY,          Assembly);
-		table!(assembly_refs,         METADATA_ASSEMBLY_REF,      AssemblyRef);
-		table!(files,                 METADATA_FILE,              File);
-		table!(exported_types,        METADATA_EXPORTED_TYPE,     ExportedType);
-		table!(manifest_resources,    METADATA_MANIFEST_RESOURCE, ManifestResource);
-		table!(nested_classes,        METADATA_NESTED_CLASS,      NestedClass);
-		table!(generic_params,        METADATA_GENERIC_PARAM,     GenericParam);
-		table!(method_specs,          METADATA_METHOD_SPEC,       MethodSpec);
+		table!(modules,                   METADATA_MODULE,                   Module);
+		table!(type_refs,                 METADATA_TYPE_REF,                 TypeRef);
+		table!(type_defs,                 METADATA_TYPE_DEF,                 TypeDef);
+		table!(fields,                    METADATA_FIELD,                    Field);
+		table!(method_defs,               METADATA_METHOD_DEF,               MethodDef);
+		table!(params,                    METADATA_PARAM,                    Param);
+		table!(interface_impls,           METADATA_INTERFACE_IMPL,           InterfaceImpl);
+		table!(member_refs,               METADATA_MEMBER_REF,               MemberRef);
+		table!(constants,                 METADATA_CONSTANT,                 Constant);
+		table!(custom_attributes,         METADATA_CUSTOM_ATTRIBUTE,         CustomAttribute);
+		table!(field_marshals,            METADATA_FIELD_MARSHAL,            FieldMarshal);
+		table!(security_attributes,       METADATA_FIELD_MARSHAL,            DeclSecutity);
+		table!(class_layouts,             METADATA_CLASS_LAYOUT,             ClassLayout);
+		table!(field_layouts,             METADATA_FIELD_LAYOUT,             FieldLayout);
+		table!(standalone_signatures,     METADATA_STANDALONE_SIG,           StandAloneSig);
+		table!(event_maps,                METADATA_EVENT_MAP,                EventMap);
+		table!(events,                    METADATA_EVENT,                    Event);
+		table!(property_maps,             METADATA_PROPERTY_MAP,             PropertyMap);
+		table!(properties,                METADATA_PROPERTY,                 Property);
+		table!(method_semantics,          METADATA_METHOD_SEMANTICS,         MethodSemantics);
+		table!(method_impls,              METADATA_METHOD_IMPL,              MethodImpl);
+		table!(module_refs,               METADATA_MODULE_REF,               ModuleRef);
+		table!(type_specs,                METADATA_TYPE_SPEC,                TypeSpec);
+		table!(impl_maps,                 METADATA_IMPL_MAP,                 ImplMap);
+		table!(field_rvas,                METADATA_FIELD_RVA,                FieldRVA);
+		table!(assemblies,                METADATA_ASSEMBLY,                 Assembly);
+		table!(assembly_refs,             METADATA_ASSEMBLY_REF,             AssemblyRef);
+		table!(files,                     METADATA_FILE,                     File);
+		table!(exported_types,            METADATA_EXPORTED_TYPE,            ExportedType);
+		table!(manifest_resources,        METADATA_MANIFEST_RESOURCE,        ManifestResource);
+		table!(nested_classes,            METADATA_NESTED_CLASS,             NestedClass);
+		table!(generic_params,            METADATA_GENERIC_PARAM,            GenericParam);
+		table!(method_specs,              METADATA_METHOD_SPEC,              MethodSpec);
+		table!(generic_param_constraints, METADATA_GENERIC_PARAM_CONSTRAINT, GenericParamConstraint);
 
 		// II.22.4
 		if header.has_table(METADATA_ASSEMBLY_PROCESSOR) {
@@ -390,6 +392,7 @@ impl TableRows {
 			nested_classes,
 			generic_params,
 			method_specs,
+			generic_param_constraints,
 		})
 	}
 }
@@ -448,13 +451,14 @@ macro_rules! simple_index {
 	};
 }
 
-simple_index!(FieldIndex,     METADATA_FIELD);
-simple_index!(MethodDefIndex, METADATA_METHOD_DEF);
-simple_index!(ParamIndex,     METADATA_PARAM);
-simple_index!(TypeDefIndex,   METADATA_TYPE_DEF);
-simple_index!(EventIndex,     METADATA_EVENT);
-simple_index!(PropertyIndex,  METADATA_PROPERTY);
-simple_index!(ModuleRefIndex, METADATA_MODULE_REF);
+simple_index!(FieldIndex,        METADATA_FIELD);
+simple_index!(MethodDefIndex,    METADATA_METHOD_DEF);
+simple_index!(ParamIndex,        METADATA_PARAM);
+simple_index!(TypeDefIndex,      METADATA_TYPE_DEF);
+simple_index!(EventIndex,        METADATA_EVENT);
+simple_index!(PropertyIndex,     METADATA_PROPERTY);
+simple_index!(ModuleRefIndex,    METADATA_MODULE_REF);
+simple_index!(GenericParamIndex, METADATA_GENERIC_PARAM);
 
 macro_rules! max {
 	($x:expr) => ($x);
@@ -1320,6 +1324,25 @@ impl MethodSpec {
 		let method = MethodDefOrRef::parse(header, data, offset)?;
 		let inst = BlobIndex::parse(header, data, offset)?;
 		Ok(MethodSpec { method, inst })
+	}
+}
+
+/// II.22.21
+#[derive(Debug, PartialEq, Clone)]
+pub struct GenericParamConstraint {
+	/// Specifies to which generic parameter this refers.
+	pub owner: GenericParamIndex,
+	/// Specifying from which class this generic parameter is
+	/// constrained to derive; or which interface this generic
+	/// parameter is constrained to implement.
+	pub constraint: TypeDefOrRef,
+}
+
+impl GenericParamConstraint {
+	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
+		let owner = GenericParamIndex::parse(header, data, offset)?;
+		let constraint = TypeDefOrRef::parse(header, data, offset)?;
+		Ok(GenericParamConstraint { owner, constraint })
 	}
 }
 
