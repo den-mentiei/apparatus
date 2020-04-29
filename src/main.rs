@@ -83,7 +83,24 @@ fn main() -> Result<()> {
 		let main = &rows.method_defs[ep.row_index()];
 		debug!("main: {:?}", main);
 		let main_offset = pe_header.rva2offset(main.rva as usize).ok_or("Failed to convert main RVA.")?;
-		dump(&data[main_offset..], 64);
+
+		let method_data = &data[main_offset..];
+
+		let mut offset = &mut 0usize;
+		let b: u8 = method_data.read(offset)?;
+		match b & 0b11 {
+			0x2 => {
+				let byte_size = (b >> 2) as usize;
+				debug!("Method is CorILMethod_TinyFormat: {} byte(s).", byte_size);
+				let il = &method_data[1..1 + byte_size];
+				dump(il, il.len());
+			},
+			0x3 => {
+				debug!("Method is CorILMethod_FatFormat.");
+				unimplemented!();
+			},
+			_ => Err("Invalid method header.")?,
+		}
 	}
 
 	Ok(())
