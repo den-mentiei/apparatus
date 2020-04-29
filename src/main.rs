@@ -71,8 +71,8 @@ fn main() -> Result<()> {
 		let header = cli::Tables::parse(logical_tables)?;
 		let rows = &logical_tables[header.size..];
 		let rows = cli::TableRows::parse(&header, rows)?;
-		debug!("{:#?}", rows);
+		// debug!("{:#?}", rows);
 	}
-	
+
 	Ok(())
 }

@@ -33,6 +33,7 @@ const METADATA_STREAM_NAME_MAX_LEN: usize = 32;
 
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Header {
+	pub ep_token: u32,
 	pub metadata_rva:  u32,
 	pub metadata_size: u32,
 }
@@ -61,7 +62,7 @@ impl Header {
 
 		Header::check_fields(data, offset)?;
 
-		Ok(Header { metadata_rva, metadata_size })
+		Ok(Header { ep_token, metadata_rva, metadata_size })
 	}
 
 	fn check_flags(data: &[u8], offset: &mut usize) -> Result<()> {

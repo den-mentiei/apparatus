@@ -4,6 +4,8 @@ use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
 
+use crate::cli::constants::*;
+
 // II.24.2.6: The physical representation of a row cell e at a
 // column with type C is defined as follows: 
 // - If e is a constant, it is stored using the number of bytes as
@@ -29,46 +31,6 @@ use crate::buf::Reading;
 // remaining bits hold the actual row number being indexed.  For
 // example, a value of 0x321, indexes row number 0xC8 in the Param
 // table.]
-
-// Taken from ECMA II.22
-const METADATA_MODULE:                   usize = 0x00;
-const METADATA_TYPE_REF:                 usize = 0x01;
-const METADATA_TYPE_DEF:                 usize = 0x02;
-const METADATA_FIELD:                    usize = 0x04;
-const METADATA_METHOD_DEF:               usize = 0x06;
-const METADATA_PARAM:                    usize = 0x08;
-const METADATA_INTERFACE_IMPL:           usize = 0x09;
-const METADATA_MEMBER_REF:               usize = 0x0A;
-const METADATA_CONSTANT:                 usize = 0x0B;
-const METADATA_CUSTOM_ATTRIBUTE:         usize = 0x0C;
-const METADATA_FIELD_MARSHAL:            usize = 0x0D;
-const METADATA_DECL_SECURITY:            usize = 0x0E;
-const METADATA_CLASS_LAYOUT:             usize = 0x0F;
-const METADATA_FIELD_LAYOUT:             usize = 0x10;
-const METADATA_STANDALONE_SIG:           usize = 0x11;
-const METADATA_EVENT_MAP:                usize = 0x12;
-const METADATA_EVENT:                    usize = 0x14;
-const METADATA_PROPERTY_MAP:             usize = 0x15;
-const METADATA_PROPERTY:                 usize = 0x17;
-const METADATA_METHOD_SEMANTICS:         usize = 0x18;
-const METADATA_METHOD_IMPL:              usize = 0x19;
-const METADATA_MODULE_REF:               usize = 0x1A;
-const METADATA_TYPE_SPEC:                usize = 0x1B;
-const METADATA_IMPL_MAP:                 usize = 0x1C;
-const METADATA_FIELD_RVA:                usize = 0x1D;
-const METADATA_ASSEMBLY:                 usize = 0x20;
-const METADATA_ASSEMBLY_PROCESSOR:       usize = 0x21;
-const METADATA_ASSEMBLY_OS:              usize = 0x22;
-const METADATA_ASSEMBLY_REF:             usize = 0x23;
-const METADATA_ASSEMBLY_REF_PROCESSOR:   usize = 0x24;
-const METADATA_ASSEMBLY_REF_OS:          usize = 0x25;
-const METADATA_FILE:                     usize = 0x26;
-const METADATA_EXPORTED_TYPE:            usize = 0x27;
-const METADATA_MANIFEST_RESOURCE:        usize = 0x28;
-const METADATA_NESTED_CLASS:             usize = 0x29;
-const METADATA_GENERIC_PARAM:            usize = 0x2A;
-const METADATA_METHOD_SPEC:              usize = 0x2B;
-const METADATA_GENERIC_PARAM_CONSTRAINT: usize = 0x2C;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum IndexSize {
