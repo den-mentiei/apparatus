@@ -79,6 +79,11 @@ fn main() -> Result<()> {
 		if ep.table_index() != cli::METADATA_METHOD_DEF {
 			Err("Unsupported entry-point type (non-method).")?;
 		}
+
+		let main = &rows.method_defs[ep.row_index()];
+		debug!("main: {:?}", main);
+		let main_offset = pe_header.rva2offset(main.rva as usize).ok_or("Failed to convert main RVA.")?;
+		dump(&data[main_offset..], 64);
 	}
 
 	Ok(())
