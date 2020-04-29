@@ -1308,19 +1308,6 @@ impl GenericParamConstraint {
 	}
 }
 
-// =======================================================================================
-
-/// II.24.2.6
-#[derive(Debug, PartialEq, Clone)]
-pub struct D {
-}
-
-impl D {
-	fn parse(header: &Tables, data: &[u8], offset: &mut usize) -> Result<Self> {
-		Ok(D {  })
-	}
-}
-
 fn empty<T>() -> Box<[T]> {
 	Box::new([])
 }

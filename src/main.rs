@@ -14,6 +14,7 @@ mod pe;
 mod utils;
 
 use std::path::Path;
+use std::convert::TryFrom;
 
 use log::{trace, debug, info};
 
@@ -72,6 +73,12 @@ fn main() -> Result<()> {
 		let rows = &logical_tables[header.size..];
 		let rows = cli::TableRows::parse(&header, rows)?;
 		// debug!("{:#?}", rows);
+
+		let ep = cli::MetadataToken::try_from(cli_header.ep_token)?;
+		debug!("Entry point: {:?}:{:?}", ep.table_index(), ep.row_index());
+		if ep.table_index() != cli::METADATA_METHOD_DEF {
+			Err("Unsupported entry-point type (non-method).")?;
+		}
 	}
 
 	Ok(())
