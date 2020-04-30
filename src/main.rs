@@ -94,6 +94,10 @@ fn main() -> Result<()> {
 				debug!("Method is CorILMethod_TinyFormat: {} byte(s).", byte_size);
 				let il = &method_data[1..1 + byte_size];
 				dump(il, il.len());
+
+				*offset = 0;
+				let op: u8 = il.read(offset)?;
+				debug!("{:#04x} | {}", op, cli::dump_opcode(op));
 			},
 			0x3 => {
 				debug!("Method is CorILMethod_FatFormat.");
