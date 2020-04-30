@@ -6,6 +6,12 @@ macro_rules! opcode {
 	};
 }
 
+macro_rules! opcode2 {
+	($name:ident, $op:literal, $str:literal) => {
+		const $name: u8 = $op;
+	};
+}
+
 // One-byte opcodes.
 opcode!(NOP,            0x00, "nop");
 opcode!(BREAK,          0x01, "break");
@@ -199,32 +205,34 @@ opcode!(LEAVE_S,        0xDE, "leave.s");
 opcode!(STIND_I,        0xDF, "stind.i");
 opcode!(CONV_U,         0xE0, "conv.u");
 
+const TWO_BYTE_OPCODE_PREFIX: u8 = 0xFE;
+
 // Two-byte opcodes.
-// 0xFE 0x00 arglist
-// 0xFE 0x01 ceq
-// 0xFE 0x02 cgt
-// 0xFE 0x03 cgt.un
-// 0xFE 0x04 clt
-// 0xFE 0x05 clt.un
-// 0xFE 0x06 ldftn
-// 0xFE 0x07 ldvirtftn
-// 0xFE 0x09 ldarg
-// 0xFE 0x0A ldarga
-// 0xFE 0x0B starg
-// 0xFE 0x0C ldloc
-// 0xFE 0x0D ldloca
-// 0xFE 0x0E stloc
-// 0xFE 0x0F localloc
-// 0xFE 0x11 endfilter
-// 0xFE 0x12 unaligned.
-// 0xFE 0x13 volatile.
-// 0xFE 0x14 tail.
-// 0xFE 0x15 Initobj
-// 0xFE 0x16 constrained.
-// 0xFE 0x17 cpblk
-// 0xFE 0x18 initblk
-// 0xFE 0x19 no.
-// 0xFE 0x1A rethrow
-// 0xFE 0x1C sizeof
-// 0xFE 0x1D Refanytype
-// 0xFE 0x1E readonly.
+opcode2!(ARGLIST,     0x00, "arglist");
+opcode2!(CEQ,         0x01, "ceq");
+opcode2!(CGT,         0x02, "cgt");
+opcode2!(CGT_UN,      0x03, "cgt.un");
+opcode2!(CLT,         0x04, "clt");
+opcode2!(CLT_UN,      0x05, "clt.un");
+opcode2!(LDFTN,       0x06, "ldftn");
+opcode2!(LDVIRTFTN,   0x07, "ldvirtftn");
+opcode2!(LDARG,       0x09, "ldarg");
+opcode2!(LDARGA,      0x0A, "ldarga");
+opcode2!(STARG,       0x0B, "starg");
+opcode2!(LDLOC,       0x0C, "ldloc");
+opcode2!(LDLOCA,      0x0D, "ldloca");
+opcode2!(STLOC,       0x0E, "stloc");
+opcode2!(LOCALLOC,    0x0F, "localloc");
+opcode2!(ENDFILTER,   0x11, "endfilter");
+opcode2!(UNALIGNED,   0x12, "unaligned.");
+opcode2!(VOLATILE,    0x13, "volatile.");
+opcode2!(TAIL,        0x14, "tail.");
+opcode2!(INITOBJ,     0x15, "Initobj");
+opcode2!(CONSTRAINED, 0x16, "constrained.");
+opcode2!(CPBLK,       0x17, "cpblk");
+opcode2!(INITBLK,     0x18, "initblk");
+opcode2!(NO,          0x19, "no.");
+opcode2!(RETHROW,     0x1A, "rethrow");
+opcode2!(SIZEOF,      0x1C, "sizeof");
+opcode2!(REFANYTYPE,  0x1D, "Refanytype");
+opcode2!(READONLY,    0x1E, "readonly.");
