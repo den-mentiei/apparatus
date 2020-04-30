@@ -96,8 +96,11 @@ fn main() -> Result<()> {
 				dump(il, il.len());
 
 				*offset = 0;
-				let op: u8 = il.read(offset)?;
-				debug!("{:#04x} | {}", op, cli::dump_opcode(op));
+				while *offset < il.len() {
+					let op: u8 = il.read(offset)?;
+					debug!("{:#04x} | {}", op, cli::dump_opcode(op));
+					*offset += cli::ins_size(op) - 1;
+				}
 			},
 			0x3 => {
 				debug!("Method is CorILMethod_FatFormat.");

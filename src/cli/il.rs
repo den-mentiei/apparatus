@@ -1,3 +1,12 @@
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum OperandType {
+	None,
+
+	// III.1.7.2
+	ShortBranchTarget(u8),
+	BranchTarget(u32),
+}
+
 // III.1.2
 
 macro_rules! for_opcodes1 {
@@ -258,4 +267,10 @@ pub fn dump_opcode(x: u8) -> &'static str {
 	}
 
 	for_opcodes1!(gen_match)
+}
+
+// TODO(dmi): @incomplete It should look at operand type
+// and proeprly handle two-byte opcodes.
+pub fn ins_size(op: u8) -> usize {
+	1
 }
