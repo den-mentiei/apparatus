@@ -5,7 +5,7 @@ use crate::error::Error;
 use crate::cli::constants::*;
 
 // II.22
-#[derive(Debug, PartialEq, Clone, Default)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Default)]
 pub struct MetadataToken(u32);
 
 impl TryFrom<u32> for MetadataToken {
