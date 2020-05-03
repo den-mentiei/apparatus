@@ -1,13 +1,10 @@
-use log::{debug};
+use log::{trace};
 
 use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
 
-// TODO(dmi): @incomplete It should return a vector of strings,
-// so we can reference it while parsing other tables.
-
-pub fn debug_user_strings(data: &[u8]) -> Result<()> {
+pub fn parse_user_strings(data: &[u8]) -> Result<Box<[String]>> {
 	// Strings in the #US (user string) heap are encoded using 16-bit Unicode
 	// encodings. The count on each string is the number of bytes (not
 	// characters) in the string. Furthermore, there is an additional
@@ -18,9 +15,10 @@ pub fn debug_user_strings(data: &[u8]) -> Result<()> {
 	// it holds 0. The 1 signifies Unicode characters that require handling
 	// beyond that normally provided for 8-bit encoding sets.
 
-	debug!("Available user strings:");
+	let mut strings = Vec::new();
+	
+	trace!("Parsing user strings:");
 
-	let mut n: usize = 0;
 	let mut i: usize = 0;
 	while i < data.len() - 1 {
 		let (blob, len) = read_blob_len(&data[i..])?;
@@ -33,16 +31,14 @@ pub fn debug_user_strings(data: &[u8]) -> Result<()> {
 			};
 			let s = String::from_utf16(wide)
 				.map_err(|_| Error::General("User string is not a valid utf-16 string."))?;
-			debug!("  `{}` (fits ascii: {})", s, blob[len] == 0);
+			trace!("  `{}` (fits ascii: {})", s, blob[len] == 0);
 
-			n += 1;
+			strings.push(s);
 		}
 		i += len;
 	}
 
-	debug!("  {} string(s).", n);
-
-	Ok(())
+	Ok(strings.into_boxed_slice())
 }
 
 // TODO(dmi): @check Add few large strings to subject.

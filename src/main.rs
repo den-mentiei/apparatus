@@ -61,14 +61,8 @@ fn main() -> Result<()> {
 		// cli::dump_guids(guids)?;
 	}
 
-	let strings = cli::parse_strings(
-		cli_metadata
-		.strings
-		.unwrap_or(&[0]));
-
-	if let Some(user_strings) = cli_metadata.user_strings {
-		// cli::debug_user_strings(user_strings)?;
-	}
+	let strings = cli::parse_strings(cli_metadata.strings.unwrap_or(&[0]));
+	let user_strings = cli::parse_user_strings(cli_metadata.user_strings.unwrap_or(&[0]));
 
 	if let Some(logical_tables) = cli_metadata.logical_tables {
 		trace!("Parsing logical tables...");
