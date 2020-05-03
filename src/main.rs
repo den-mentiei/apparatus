@@ -37,7 +37,6 @@ fn main() -> Result<()> {
 	info!("Subject size: {} bytes.", data.len());
 
 	let pe_header = Header::parse(data)?;
-	// debug!("{:#?}", pe_header);
 
 	let cli_offset = pe_header.rva2offset(pe_header.cli_rva as usize).ok_or("Failed to convert CLI header RVA.")?;
 	if cli_offset >= data.len() {
@@ -46,7 +45,6 @@ fn main() -> Result<()> {
 
 	let cli = &data[cli_offset..cli_offset + pe_header.cli_size as usize];
 	let cli_header = cli::Header::parse(cli, &pe_header)?;
-	// debug!("{:#?}", cli_header);
 
 	let metadata_offset = pe_header.rva2offset(cli_header.metadata_rva as usize).ok_or("Failed to convert CLI metadata RVA.")?;
 	if metadata_offset >= data.len() {
@@ -55,12 +53,8 @@ fn main() -> Result<()> {
 
 	let metadata = &data[metadata_offset..metadata_offset + cli_header.metadata_size as usize];
 	let cli_metadata = cli::Metadata::parse(metadata)?;
-	// debug!("{:#?}", cli_metadata);
 
-	if let Some(guids) = cli_metadata.guids {
-		// cli::dump_guids(guids)?;
-	}
-
+	let guids = cli::parse_guids(cli_metadata.guids.unwrap_or(&[0]));
 	let strings = cli::parse_strings(cli_metadata.strings.unwrap_or(&[0]));
 	let user_strings = cli::parse_user_strings(cli_metadata.user_strings.unwrap_or(&[0]));
 	let blobs = cli::parse_blobs(cli_metadata.blobs.unwrap_or(&[0]));
@@ -70,7 +64,6 @@ fn main() -> Result<()> {
 		let header = cli::Tables::parse(logical_tables)?;
 		let rows = &logical_tables[header.size..];
 		let rows = cli::TableRows::parse(&header, rows)?;
-		// debug!("{:#?}", rows);
 
 		let ep = cli::MetadataToken::try_from(cli_header.ep_token)?;
 		debug!("Entry point: {:?}:{:?}", ep.table_index(), ep.row_index());

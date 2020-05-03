@@ -1,11 +1,11 @@
-use log::{trace};
+use log::{debug};
 
 use crate::Result;
 use crate::error::Error;
 use crate::buf::Reading;
 
 pub fn parse_blobs(data: &[u8]) -> Result<Box<[&[u8]]>> {
-	trace!("Parsing blobs...");
+	debug!("Parsing blobs...");
 
 	let mut blobs = Vec::new();
 
@@ -16,7 +16,7 @@ pub fn parse_blobs(data: &[u8]) -> Result<Box<[&[u8]]>> {
 		i += len;
 	}
 
-	trace!("Found {} blob(s).", blobs.len());
+	debug!("Found {} blob(s).", blobs.len());
 	Ok(blobs.into_boxed_slice())
 }
 
@@ -31,7 +31,7 @@ pub fn parse_user_strings(data: &[u8]) -> Result<Box<[String]>> {
 	// it holds 0. The 1 signifies Unicode characters that require handling
 	// beyond that normally provided for 8-bit encoding sets.
 
-	trace!("Parsing user strings:");
+	debug!("Parsing user strings:");
 
 	let mut strings = Vec::with_capacity(1);
 	strings.push(String::new());
@@ -48,13 +48,14 @@ pub fn parse_user_strings(data: &[u8]) -> Result<Box<[String]>> {
 			};
 			let s = String::from_utf16(wide)
 				.map_err(|_| Error::General("User string is not a valid utf-16 string."))?;
-			trace!("  `{}` (fits ascii: {})", s, blob[len] == 0);
+			debug!("  `{}` (fits ascii: {})", s, blob[len] == 0);
 
 			strings.push(s);
 		}
 		i += len;
 	}
 
+	debug!("Found {} user string(s).", strings.len());
 	Ok(strings.into_boxed_slice())
 }
 
