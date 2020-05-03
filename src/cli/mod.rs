@@ -13,8 +13,8 @@ pub use self::guids::*;
 mod strings;
 pub use self::strings::*;
 
-mod user_strings;
-pub use self::user_strings::*;
+mod blobs;
+pub use self::blobs::*;
 
 mod token;
 pub use self::token::*;

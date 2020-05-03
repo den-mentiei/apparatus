@@ -63,6 +63,7 @@ fn main() -> Result<()> {
 
 	let strings = cli::parse_strings(cli_metadata.strings.unwrap_or(&[0]));
 	let user_strings = cli::parse_user_strings(cli_metadata.user_strings.unwrap_or(&[0]));
+	let blobs = cli::parse_blobs(cli_metadata.blobs.unwrap_or(&[0]));
 
 	if let Some(logical_tables) = cli_metadata.logical_tables {
 		trace!("Parsing logical tables...");
