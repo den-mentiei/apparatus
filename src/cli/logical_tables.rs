@@ -370,6 +370,10 @@ impl StringIndex {
 		};
 		Ok(i)
 	}
+
+	pub fn into_index(&self) -> usize {
+		self.0 as usize
+	}
 }
 
 #[derive(Debug, PartialEq, Clone, Default)]
