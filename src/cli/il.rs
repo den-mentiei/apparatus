@@ -39,7 +39,7 @@ impl OperandType {
 
 macro_rules! for_opcodes1 {
 	($x:ident) => {
-		$x!((NOP,            0x00, "nop",            OperandType::None)
+		$x!{(NOP,            0x00, "nop",            OperandType::None)
 			(BREAK,          0x01, "break",          OperandType::None)
 			(LDARG_0,        0x02, "ldarg.0",        OperandType::None)
 			(LDARG_1,        0x03, "ldarg.1",        OperandType::None)
@@ -229,7 +229,7 @@ macro_rules! for_opcodes1 {
 			(LEAVE,          0xDD, "leave",          OperandType::I32)
 			(LEAVE_S,        0xDE, "leave.s",        OperandType::U8)
 			(STIND_I,        0xDF, "stind.i",        OperandType::None)
-			(CONV_U,         0xE0, "conv.u",         OperandType::None));
+			(CONV_U,         0xE0, "conv.u",         OperandType::None)}
 	};
 }
 
